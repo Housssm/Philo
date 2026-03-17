@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 14:29:54 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/16 18:16:06 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/17 15:47:00 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,18 +42,25 @@ long	ft_atol(const char *s)
 
 int	fill_structs(char **av, t_params *params)
 {
-
-	params->nb_philo = ft_atol(av[1]);
-	params->time_die = ft_atol(av[2]);
-	params->time_eat = ft_atol(av[3]);
-	params->time_sleep = ft_atol(av[4]);
+	//verifier si timespend est sperieur a 60
+ 	if ((ft_atol(av[1]) > INT_MAX)|| ft_atol(av[2]) > INT_MAX || ft_atol(av[3]) > INT_MAX ||
+	  ft_atol(av[4]) > INT_MAX || (ft_atol(av[5]) && ft_atol(av[5]) > INT_MAX))
+		return (printf("Parameter's scope invalid\n"), 1);
 	if (av[5])
-	params->must_eat = ft_atol(av[5]);
-	params->threads = malloc(sizeof(pthread_t *) * (params->nb_philo));
-	if (!params->threads)
+		params->must_eat = ft_atol(av[5]);
+	params->all_threads_ready = false;
+	params->nb_philo = ft_atol(av[1]);
+	params->time_die = ft_atol(av[2]) * 1e3;
+	params->time_eat = ft_atol(av[3]) * 1e3;
+	params->time_sleep = ft_atol(av[4]) * 1e3;
+	params->ids = malloc(sizeof(int *) * (params->nb_philo));
+	if (!params->ids)
 		return (1);
 	params->nb_fork = malloc(sizeof(int *) * (params->nb_philo));
 	if (!params->nb_fork)
+		return (1);
+	params->threads = malloc(sizeof(pthread_t *) * (params->nb_philo));
+	if (!params->threads)
 		return (1);
 	return(0);
 }

@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:26:41 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/16 18:15:02 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/17 15:51:05 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,34 +22,77 @@
 
 // creer un nombre de threah egale au nombre de pilo 
 //chque fourchette pour charque philo que oon doit proteger avec un mutex
+// proteger lecriture par un mutex aussi 
 
-
+ 
 void	free_struct(t_params *params)
 {
 	if (params->threads)
 		free(params->threads);
 	if (params->nb_fork)
 		free(params->nb_fork);
+	if (params->ids)
+		free(params->ids);
+
 }
 
+// void action(int nb_philo, char **message, int time)
+// {
+// 	if ( message == "fork")
+// 	{	
+// 		printf("%d %d has taken a fork\n", time, nb_philo);
+// 		usleep(time);
+// 	}
+// 	if ( message == "eating")
+// 	{	
+// 		printf("%d %d is eating\n", time, nb_philo);
+// 		usleep(time);
+// 	}
+// 	if ( message == "sleeping")
+// 	{	
+// 		printf("%d %d is sleeping\n", time, nb_philo);
+// 		usleep(time);
+// 	}
+// 	if ( message == "thinking")
+// 	{	
+// 		printf("%d %d is thinking\n", time, nb_philo);
+// 		usleep(time);
+// 	}
+// 	if ( message == "dead")
+// 		printf("%d %d is dead\n", time, nb_philo);
+// }
 
-
-void*	what_to_do(void *arg)
+void*	what_to_do(void *structure)
 {
-	(void)arg;
-	printf("Passed by here\n");
+	t_philo *philo;
+	
+	philo = (t_philo *)structure;
+	wait_for_threats(philo->params);
+	printf("passed here\n");
+	sleep(3);
+	//fubction to ea t
+
+	//function to sleep
+
+	//function to think
+
+
 	return NULL;
 }
 
-int	thread_launching(t_params *params)
+int	a_table(t_params *params)
 {
 	int	i;
 
 	i = 0;
+	if (params->must_eat == 0)
+		return (0);
 	while (i < params->nb_philo)
 	{
-		if (pthread_create(&params->threads[i], NULL, what_to_do, NULL) != 0)
+		params->ids[i] = i;
+		if (pthread_create(&params->threads[i], NULL, what_to_do, &params->ids[i]) != 0)
 			return (free_struct(params), 1);
+		printf("Thread %d has started\n", i);
 		i++;
 	}
 	i = 0;
@@ -57,8 +100,10 @@ int	thread_launching(t_params *params)
 	{
 		if (pthread_join(params->threads[i], NULL) != 0 )
 			return (free_struct(params), 1);
+		printf("Thread %d has finished\n", i);
 		i++;
 	}
+
 	return (0);
 }
 
@@ -71,17 +116,15 @@ int	main(int ac, char **av)
 	if (ac == 5 || ac ==6 )
 	{
 		if (check_and_init(ac, av, &philo))
-			return (1);
-		if (thread_launching(&params))
-			return (1);
+			return (free_struct(&params), 1);
+		if (a_table(&params))
+			return (free_struct(&params), 1);
+		free_struct(&params)
 		
-		printf("nb philo    == %d\n", philo.params->nb_philo);
-		printf("time to eat == %d\n", philo.params->time_eat);
-		printf("time die    == %d\n", philo.params->time_die);
-		printf("time sleep  == %d\n", philo.params->time_sleep);
 	}
 	else
 		return(printf("Invalid number of argument\n"), 1);
+	free_struct(&params);
 	return (0);
 }
 

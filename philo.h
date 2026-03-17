@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:27:43 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/16 18:08:26 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/17 15:49:14 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,22 +21,25 @@
 #include <pthread.h>
 #include <sys/time.h>
 #include <limits.h>
+#include <stdbool.h>
 
 typedef struct s_params
 {
-	int			nb_philo;
-	int			time_die;
-	int			time_eat;
-	int			time_sleep;
-	int			must_eat;
+	long		nb_philo;
+	long		time_die;
+	long		time_eat;
+	long		time_sleep;
+	long		*ids;
+	long		*nb_fork;
+	long		must_eat;
+	long		limit_meal;
+	bool		all_threads_ready;
 	pthread_t	*threads;
-	int			*nb_fork;
-	
+	t_params	*philo;
 }	t_params;
 
 typedef struct s_philo
 {
-	int			nb_philo;
 	int			meal_count;
 	long		lst_meal;
 	t_params	*params;
