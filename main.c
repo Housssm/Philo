@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:26:41 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/18 11:44:58 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/18 14:45:02 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,28 +54,14 @@
  
 void	free_struct(t_params *params)
 {
-	if (params->philo->threads)
-		free(params->philo->threads);
+	if (params->philo->threads_nb)
+		free(params->philo->threads_nb);
 	if (params->nb_fork)
 		free(params->nb_fork);
-	if (params->ids)
-		free(params->ids);
+	//destroy mutex
 }
 
-int	safe_mutex_handle(pthread_mutex_t *mutex, t_mutsec opcode)
-{
-	if (LOCK == opcode)
-		pthread_mutex_lock(mutex);
-	else if (UNLOCK == opcode)
-		pthread_mutex_unlock(mutex);
-	else if (DESTROY == opcode)
-		pthread_mutex_destroy(mutex);
-	else if (INIT == opcode)
-		pthread_mutex_init(mutex, NULL);
-	else 
-		return (printf("Wrong opcode for mutex\n"), 1);
-	return (0);
-}
+
 
 //Check mutex error 42.20
 
@@ -137,7 +123,6 @@ int	main(int ac, char **av)
 		if (a_table(&params))
 			return (free_struct(&params), 1);
 		free_struct(&params);
-		
 	}
 	else
 		return(printf("Invalid number of argument\n"), 1);

@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:27:43 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/18 11:46:50 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/18 13:45:13 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,9 +38,9 @@ typedef struct s_philo
 	long		meal_count;
 	long		time_lst_meal;
 	bool		full;
-	pthread_t	*threads;
-	t_fork		*rigth_fork;
-	t_fork		*left_fork;
+	pthread_t	*threads_nb;
+	t_fork		*first_fork;
+	t_fork		*second_fork;
 	t_params	*params;
 }	t_philo;
 
@@ -50,7 +50,6 @@ typedef struct s_params
 	long			time_die;
 	long			time_eat;
 	long			time_sleep;
-	long			*ids;
 	long			*nb_fork;
 	long			must_eat;
 	long			beg_dinner;
