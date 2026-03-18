@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 14:29:54 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/18 14:47:18 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/18 18:15:39 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,31 +61,33 @@ int	fill_philo(t_params *params)
 	t_philo *philo;
 
 	i = -1;
+	params->philos->threads_id = malloc(sizeof(pthread_t) * (params->nb_philo));
+	if (!params->philos->threads_id)
+		return (printf("Thread malloc problem\n"), 1);
 	while (++i< params->nb_philo)
 	{
-		philo = params->nb_philo + i;
+		philo = params->philos + i;
 		philo->id = i + 1;
+		// printf(" value of philo id = %d\n\n\n\n", philo->id);
 		philo->meal_count = 0;
 		philo->full = false;
 		philo->params = params;
+		philo->threads_id = params->philos->threads_id;
 		determine_fork(philo, params->forks, i);
 	}
-	philo->threads_nb = malloc(sizeof(pthread_t *) * (params->nb_philo));
-	if (!philo->threads_nb)
-		return (printf("Thread malloc problem\n"), 1);
 	return (0);
 }
 
 int	safe_mutex_handle(pthread_mutex_t *mutex, t_mutsec opcode)
 {
 	if (LOCK == opcode)
-		pthread_mutex_lock(mutex);
+		return(pthread_mutex_lock(mutex));
 	else if (UNLOCK == opcode)
-		pthread_mutex_unlock(mutex);
+		return(pthread_mutex_unlock(mutex));
 	else if (DESTROY == opcode)
-		pthread_mutex_destroy(mutex);
+		return (pthread_mutex_destroy(mutex));
 	else if (INIT == opcode)
-		pthread_mutex_init(mutex, NULL);
+		return (pthread_mutex_init(mutex, NULL));
 	else 
 		return (printf("Wrong opcode for mutex\n"), 1);
 	return (0);
@@ -96,24 +98,29 @@ int	fill_params(char **av, t_params *params)
 	int	i;
 
 	i = -1;
- 	if ((ft_atol(av[1]) > INT_MAX)|| ft_atol(av[2]) > INT_MAX || ft_atol(av[3]) > INT_MAX || ft_atol(av[4]) > INT_MAX || (ft_atol(av[5]) && ft_atol(av[5]) > INT_MAX))
-		return (printf("Parameter's scope invalid\n"), 1);
+ 	// if ((ft_atol(av[1]) > INT_MAX)|| ft_atol(av[2]) > INT_MAX || ft_atol(av[3]) > INT_MAX || ft_atol(av[4]) > INT_MAX || (ft_atol(av[5]) && ft_atol(av[5]) > INT_MAX))
+	// 	return (printf("Parameter's scope invalid\n"), 1);
 	params->nb_philo = ft_atol(av[1]);
 	params->time_die = ft_atol(av[2]) * 1e3;
 	params->time_eat = ft_atol(av[3]) * 1e3;
 	params->time_sleep = ft_atol(av[4]) * 1e3;
 	if (av[5])
 		params->must_eat = ft_atol(av[5]);
+	else
+		params->must_eat = -1;
 	params->all_threads_ready = false;
-	params->nb_fork = malloc(sizeof(int *) * (params->nb_philo));
-	if (!params->nb_fork)
+	params->forks = malloc(sizeof(t_fork) * (params->nb_philo));
+	if (!params->forks)
 		return (printf("Error malloc forks\n"), 1);
 	params->all_threads_ready = false;
 	while (++i < ft_atol(av[1]))
 	{
-		if (safe_mutex_handle(&params->forks[i], INIT))
+		if (safe_mutex_handle(&params->forks[i].fork, INIT))
 			return (1);
 	}
+	params->philos = malloc(sizeof(t_philo) * params->nb_philo);
+	if (!params->philos)
+		return(printf("Error malloc philos\n"), 1);
 	if (fill_philo(params))
 		return (1);
 	return(0);
@@ -130,7 +137,7 @@ int	check_and_init(int ac, char **av, t_philo *philo)
 			return (printf("Invalid argument\n"), 1);
 		i++;
 	}
-	if (fill_structs(av,philo->params))
+	if (fill_params(av,philo->params))
 		return (1);
 	return (0);
 }

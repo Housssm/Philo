@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:27:43 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/18 13:45:13 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/18 18:04:44 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ typedef struct s_philo
 	long		meal_count;
 	long		time_lst_meal;
 	bool		full;
-	pthread_t	*threads_nb;
+	pthread_t	*threads_id;
 	t_fork		*first_fork;
 	t_fork		*second_fork;
 	t_params	*params;
@@ -57,7 +57,7 @@ typedef struct s_params
 	bool			all_threads_ready;
 	t_fork			*forks;
 	pthread_mutex_t *mutex_waiting_thread;
-	t_philo			*philo;
+	t_philo			*philos;
 }	t_params;
 
 
@@ -73,6 +73,8 @@ typedef enum	e_mutsec
 }	t_mutsec;
 
 int	check_and_init(int ac, char **av, t_philo *philo);
+void	free_struct(t_params *params);
+
 
 #include "parsing.h"
 
