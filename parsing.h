@@ -6,14 +6,14 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 14:29:54 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/18 18:15:39 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/23 12:09:07 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef PARSING_H
-#define PARSING_H
+# define PARSING_H
 
-#include "philo.h"
+# include "philo.h"
 
 long	ft_atol(const char *s)
 {
@@ -28,9 +28,9 @@ long	ft_atol(const char *s)
 			i++;
 	if (s[i] == '-' || s[i] == '+')
 	{
-			if (s[i] == '-')
-					sign = -1;
-			i++;
+		if (s[i] == '-')
+				sign = -1;
+		i++;
 	}
 	while (s[i] >= '0' && s[i] <= '9')
 	{
@@ -40,105 +40,98 @@ long	ft_atol(const char *s)
 	return (res * sign);
 }
 
-void	determine_fork(t_philo *philo, t_fork *fork, int position)
+int	safe_mutex(pthread_mutex_t *mutex, t_mutsec opcode)
 {
-	int	num_philo;
-
-	num_philo = philo->params->nb_philo;
-	
-	philo->first_fork = &fork[(position + 1) % num_philo];
-	philo->second_fork = &fork[position];
-	if (philo->id % 2)
-	{
-		philo->first_fork = &fork[position];
-		philo->second_fork = &fork[(position + 1) % num_philo];		
-	}
-}
-
-int	fill_philo(t_params *params)
-{
-	int		i;
-	t_philo *philo;
-
-	i = -1;
-	params->philos->threads_id = malloc(sizeof(pthread_t) * (params->nb_philo));
-	if (!params->philos->threads_id)
-		return (printf("Thread malloc problem\n"), 1);
-	while (++i< params->nb_philo)
-	{
-		philo = params->philos + i;
-		philo->id = i + 1;
-		// printf(" value of philo id = %d\n\n\n\n", philo->id);
-		philo->meal_count = 0;
-		philo->full = false;
-		philo->params = params;
-		philo->threads_id = params->philos->threads_id;
-		determine_fork(philo, params->forks, i);
-	}
-	return (0);
-}
-
-int	safe_mutex_handle(pthread_mutex_t *mutex, t_mutsec opcode)
-{
-	if (LOCK == opcode)
-		return(pthread_mutex_lock(mutex));
-	else if (UNLOCK == opcode)
-		return(pthread_mutex_unlock(mutex));
-	else if (DESTROY == opcode)
-		return (pthread_mutex_destroy(mutex));
-	else if (INIT == opcode)
+	if (opcode == LOCK)
+		return (pthread_mutex_lock(mutex));
+	else if (opcode == UNLOCK)
+		return (pthread_mutex_unlock(mutex));
+	else if (opcode == INIT)
 		return (pthread_mutex_init(mutex, NULL));
-	else 
+	else if (opcode == DESTROY)
+		return (pthread_mutex_destroy(mutex));
+	// else if (opcode == CREATE)
+	// 	pthread_mutex_create(mutex);
+	// else if (opcode == JOIN)
+	// 	pthread_mutex_join(mutex);
+	else
 		return (printf("Wrong opcode for mutex\n"), 1);
 	return (0);
 }
 
-int	fill_params(char **av, t_params *params)
+void	determine_fork(t_philo *philo, t_fork *forks, int position)
+{
+	int	nb_philo;
+
+	nb_philo = philo->data->nb_philos;
+	philo->first_fork = &forks[(position + 1) % nb_philo];
+	philo->second_fork = &forks[position];
+	if (philo->id % 2)
+	{
+		philo->first_fork = &forks[position];
+		philo->second_fork = &forks[(position + 1) % nb_philo];
+	}
+}
+
+void	fill_philo(t_data *data)
+{
+	t_philo	*philo;
+	int		i;
+
+	i = -1;
+	while (++i < data->nb_philos)
+	{
+		philo = data->philo + 1;
+		philo->id = i + 1;
+		philo->meal_count = 0;
+		philo->time_lst_meal = 0;
+		philo->full = false;
+		philo->data = data;
+		determine_fork(philo, data->forks, i);
+	}
+}
+
+int	fill_data(char **av, t_data *data)
 {
 	int	i;
 
 	i = -1;
- 	// if ((ft_atol(av[1]) > INT_MAX)|| ft_atol(av[2]) > INT_MAX || ft_atol(av[3]) > INT_MAX || ft_atol(av[4]) > INT_MAX || (ft_atol(av[5]) && ft_atol(av[5]) > INT_MAX))
-	// 	return (printf("Parameter's scope invalid\n"), 1);
-	params->nb_philo = ft_atol(av[1]);
-	params->time_die = ft_atol(av[2]) * 1e3;
-	params->time_eat = ft_atol(av[3]) * 1e3;
-	params->time_sleep = ft_atol(av[4]) * 1e3;
+	data->nb_philos = ft_atol(av[1]);
+	data->time_to_die = ft_atol(av[2]);
+	data->time_to_eat = ft_atol(av[3]);
+	data->time_to_sleep = ft_atol(av[4]);
 	if (av[5])
-		params->must_eat = ft_atol(av[5]);
-	else
-		params->must_eat = -1;
-	params->all_threads_ready = false;
-	params->forks = malloc(sizeof(t_fork) * (params->nb_philo));
-	if (!params->forks)
-		return (printf("Error malloc forks\n"), 1);
-	params->all_threads_ready = false;
-	while (++i < ft_atol(av[1]))
+		data->must_eat = ft_atol(av[5]);
+	data->all_threads_ready = false;
+	data->philo = malloc(sizeof(t_philo) * data->nb_philos);
+	data->forks = malloc(sizeof(t_fork) * data->nb_philos);
+	if (!data->philo || !data->forks)
+		return (printf("Malloc probleme\n"), 1);
+	while (++i < data->nb_philos)
 	{
-		if (safe_mutex_handle(&params->forks[i].fork, INIT))
-			return (1);
+		if (safe_mutex(&data->forks[i].fork, INIT))
+			return (2);
+		data->forks[i].id_fork = i;
 	}
-	params->philos = malloc(sizeof(t_philo) * params->nb_philo);
-	if (!params->philos)
-		return(printf("Error malloc philos\n"), 1);
-	if (fill_philo(params))
-		return (1);
-	return(0);
+	fill_philo(data);
+	return (0);
 }
 
-int	check_and_init(int ac, char **av, t_philo *philo)
+int	check_and_init(int ac, char **av, t_data *data)
 {
 	int	i;
 
 	i = 0;
-	while ( i < ac)
+	while (i < ac)
 	{
-		if(ft_atol(av[i]) < 0)
+		if (ft_atol(av[i]) < 0 || ft_atol(av[i]) > INT_MAX)
 			return (printf("Invalid argument\n"), 1);
 		i++;
 	}
-	if (fill_params(av,philo->params))
-		return (1);
+	if (av[5] && ft_atol(av[5]) == 0)
+		return (printf("No simulation needed\n"), 1);
+	if (fill_data(av, data))
+		return (2);
 	return (0);
 }
 

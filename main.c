@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:26:41 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/18 18:20:20 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/23 12:00:46 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,91 +52,86 @@
 // 		printf("%d %d is dead\n", time, nb_philo);
 // }
  
-void	free_struct(t_params *params)
-{	
-	int	i;
-	(void)params;
-	i = -1;
-	if (params->forks)
-	{	
-		while (++i < params->nb_philo)
-			safe_mutex_handle(&params->forks[i].fork, DESTROY);
-		free(params->forks);
-	}
-	if (params->philos->threads_id)
-		free(params->philos->threads_id);
-	if (params->philos)
-		free(params->philos);
+// void	free_struct(t_params *params)
+// {	
+// /* 	need to free philo->threads_id  params->forks params->philos intialise dans parsing
+//  */	(void)params;
+// 	int	i;
+// 	i = -1;
 	
-	//destroy mutex
-}
-
-
-
-//Check mutex error 42.20
-
-// void	wait_for_threads(t_params *params)
-// {
-	
-	
+// 	if (params->philos)
+// 		printf("TEST\n");
+// 	//destroy mutex
 // }
 
 
-void*	what_to_do(void *structure)
-{
-	t_philo *philo;
+// void*	what_to_do(void *structure)
+// {
+// 	t_philo *philo;
 	
-	philo = (t_philo *)structure;
-	// wait_for_threads(philo->params);
-	printf("passed here\n");
-	sleep(3);
-	return NULL;
-}
+// 	philo = (t_philo *)structure;
+// 	// wait_for_threads(philo->params);
+// 	printf("passed here\n");
+// 	sleep(3);
+// 	return NULL;
+// }
 
-int	a_table(t_params *params)
+// int	a_table(t_params *params)
+// {
+// 	long	i;
+
+// 	i = 0;
+// 	if (params->must_eat == 0)
+// 		return (0);
+// 	while (i < params->nb_philo)
+// 	{
+// 		// params->ids[i] = i;
+// 		if (pthread_create(&params->philos->threads_id[i], NULL, what_to_do, (void *)i )!= 0)
+// 			return (free_struct(params), 1);
+// 		printf("Thread %ld has started\n", i);
+// 		i++;
+// 	}
+// 	i = 0;
+// 	while (i < params->nb_philo)
+// 	{
+// 		if (pthread_join(params->philos->threads_id[i], NULL) != 0 )
+// 			return (free_struct(params), 1);
+// 		printf("Thread %ld has finished\n", i);
+// 		i++;
+// 	}
+
+// 	return (0);
+// }
+ 
+void	free_struct(t_data *data) // data philo et data forks
 {
-	long	i;
+	int	i;
 
 	i = 0;
-	if (params->must_eat == 0)
-		return (0);
-	while (i < params->nb_philo)
-	{
-		// params->ids[i] = i;
-		if (pthread_create(&params->philos->threads_id[i], NULL, what_to_do, (void *)i )!= 0)
-			return (free_struct(params), 1);
-		printf("Thread %ld has started\n", i);
-		i++;
-	}
-	i = 0;
-	while (i < params->nb_philo)
-	{
-		if (pthread_join(params->philos->threads_id[i], NULL) != 0 )
-			return (free_struct(params), 1);
-		printf("Thread %ld has finished\n", i);
-		i++;
-	}
-
-	return (0);
+	if (data->philo)
+		free(data->philo);
+	if (data->forks)
+		free(data->forks);
 }
+
 
 int	main(int ac, char **av)
 {
 	t_philo		philo;
-	t_params	params;
+	t_data	data;
 	
-	philo.params = &params;
+	philo.data = &data;
+	data.philo = &philo;
 	if (ac == 5 || ac ==6 )
 	{
-		if (check_and_init(ac, av, &philo))
-			return (free_struct(&params), 1);
+		if (check_and_init(ac, av, &data))
+			return (free_struct(&data), 1);
 		// if (a_table(&params))
 		// 	return (free_struct(&params), 1);
-		free_struct(&params);
 	}
 	else
 		return(printf("Invalid number of argument\n"), 1);
-	free_struct(&params);
+	free_struct(&data);
 	return (0);
 }
 
