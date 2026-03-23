@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 14:29:54 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/23 13:03:33 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/23 19:03:51 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,10 +50,6 @@ int	safe_mutex(pthread_mutex_t *mutex, t_mutsec opcode)
 		return (pthread_mutex_init(mutex, NULL));
 	else if (opcode == DESTROY)
 		return (pthread_mutex_destroy(mutex));
-	// else if (opcode == CREATE)
-	// 	pthread_mutex_create(mutex);
-	// else if (opcode == JOIN)
-	// 	pthread_mutex_join(mutex);
 	else
 		return (printf("Wrong opcode for mutex\n"), 1);
 	return (0);
@@ -87,6 +83,9 @@ void	fill_philo(t_data *data)
 		philo->time_lst_meal = 0;
 		philo->full = false;
 		philo->data = data;
+		philo->threads_ids = i + 1;
+		philo->start_time = 0;
+		philo->end_time = 0;
 		determine_fork(philo, data->forks, i);
 	}
 }
@@ -113,6 +112,8 @@ int	fill_data(char **av, t_data *data)
 			return (2);
 		data->forks[i].id_fork = i;
 	}
+	if (safe_mutex(&data->table_lock, INIT))
+		return (3);
 	fill_philo(data);
 	return (0);
 }

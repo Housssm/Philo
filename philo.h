@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:27:43 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/23 12:08:32 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/23 19:02:16 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,9 @@ typedef	struct s_philo
 	long		meal_count;
 	long		time_lst_meal;
 	bool		full;
+	long		start_time;
+	long		end_time;
+	size_t		time;
 	pthread_t	threads_ids;
 	t_fork		*first_fork;
 	t_fork		*second_fork;
@@ -82,6 +85,7 @@ typedef struct s_data
 	long			must_eat;
 	bool			all_threads_ready;
 	t_fork			*forks;
+	pthread_mutex_t	*table_lock;
 	pthread_mutex_t	*meal_lock;
 	pthread_mutex_t	*write_lock;
 	pthread_mutex_t	*dead_lock;
