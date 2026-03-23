@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 14:29:54 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/23 12:09:07 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/23 13:03:33 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,6 +122,8 @@ int	check_and_init(int ac, char **av, t_data *data)
 	int	i;
 
 	i = 0;
+	data->philo = NULL;
+	data->forks = NULL;
 	while (i < ac)
 	{
 		if (ft_atol(av[i]) < 0 || ft_atol(av[i]) > INT_MAX)
@@ -129,7 +131,7 @@ int	check_and_init(int ac, char **av, t_data *data)
 		i++;
 	}
 	if (av[5] && ft_atol(av[5]) == 0)
-		return (printf("No simulation needed\n"), 1);
+		return (printf("No simulation needed\n"), 0);
 	if (fill_data(av, data))
 		return (2);
 	return (0);

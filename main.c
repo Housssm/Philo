@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:26:41 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/23 12:00:46 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/23 13:08:08 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,16 +108,27 @@ void	free_struct(t_data *data) // data philo et data forks
 	int	i;
 
 	i = 0;
-	if (data->philo)
+	if (data->philo != NULL)
 		free(data->philo);
-	if (data->forks)
+	if (data->forks != NULL)
 		free(data->forks);
 }
 
+int	a_table(t_data *data)
+{
+	int	i;
+
+	i = -1;
+	while(++i < data->nb_philos)
+	{
+		
+	}
+	return (0);
+}
 
 int	main(int ac, char **av)
 {
-	t_philo		philo;
+	t_philo	philo;
 	t_data	data;
 	
 	philo.data = &data;
@@ -126,8 +137,8 @@ int	main(int ac, char **av)
 	{
 		if (check_and_init(ac, av, &data))
 			return (free_struct(&data), 1);
-		// if (a_table(&params))
-		// 	return (free_struct(&params), 1);
+		if (a_table(&data))
+			return (free_struct(&data), 1);
 	}
 	else
 		return(printf("Invalid number of argument\n"), 1);
