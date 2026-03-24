@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:26:41 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/23 19:11:47 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/24 20:37:40 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,8 +111,6 @@ void	free_struct(t_data *data) // data philo et data forks
 		free(data->forks);
 }
 
-void	set_bool(data)
-
 int	safe_thread(pthread_t *thread, void*(*fct)(void *),void *data, t_mutsec opcode)
 {
 	if (opcode == CREATE)
@@ -134,13 +132,27 @@ __uint64_t get_time(void)
 		return(0);
 	return ((tv.tv_sec * (__uint64_t)10000) + (tv.tv_sec / 1000));
 }
-
-void wait_for_threads(t_data *data)
+	
+void set_bool(t_philo *philo, bool value)
 {
-	while (!get_bool(data->))
+	philo->thread_ready = value;
 }
 
 
+bool	get_bool(bool *value)
+{
+	bool	result;
+	
+	result = value;
+	return (result);
+}
+	
+void	wait_for_threads(t_data *data)
+{
+	while (!get_bool(&data->philo->thread_ready))
+		;
+}
+	
 void*	what_to_do(void *data)
 {
 	t_philo *philo;
@@ -150,41 +162,27 @@ void*	what_to_do(void *data)
 	philo->start_time = get_time();
 	usleep(10000);
 	philo->end_time = get_time();
-	printf("thread %d est passe par ici au temps %ld\n", philo->id, philo->end_time - philo->start_time);
+	printf("thread %d est passe par ici au temps \n", philo->id);
+	// printf("thread %d est passe par ici au temps %ld\n", philo->id, philo->end_time - philo->start_time);
 	return NULL;
 }
-void	set_bool(pthread_mutex_t *mutex, bool *dest, bool value)
-{
-	safe_mutex(mutex, LOCK);
-	dest = value;
-	safe_mutex(mutex, UNLOCK);
-}
 
-bool	get_bool(pthread_mutex_t *mutex, bool *value)
-{
-	bool result;
-	
-	safe_mutex(mutex, LOCK);
-	result = *value;
-	safe_mutex(mutex, UNLOCK);
-	return (result);
-}
 
 int	a_table(t_data *data)
 {
 	int	i;
 	
 	i = -1;
-	if ( data->nb_philos == 1)
-		;//fonction a faire;
-	else 
+	if (data->nb_philos == 1)
+		printf("\n");//fonction a faire;
+	else
 	{
 		while(++i < data->nb_philos)
 		{
 			if (safe_thread(&data->philo[i].threads_ids, what_to_do, &data->philo[i], CREATE))
 				return (1);
+			// set_bool(&data->philo[i].thread_ready, true);
 		}
-		set_bool(&data->table_lock, &data->all_threads_ready, true);
 		i = -1;
 		while (++i < data->nb_philos)
 		{

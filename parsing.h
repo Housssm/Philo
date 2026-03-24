@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 14:29:54 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/23 19:03:51 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/24 20:40:30 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,7 @@ void	fill_philo(t_data *data)
 	{
 		philo = data->philo + 1;
 		philo->id = i + 1;
+		// printf("\n\n\n\n valeur de id = = %d\n\n\n", philo->id
 		philo->meal_count = 0;
 		philo->time_lst_meal = 0;
 		philo->full = false;
@@ -86,6 +87,7 @@ void	fill_philo(t_data *data)
 		philo->threads_ids = i + 1;
 		philo->start_time = 0;
 		philo->end_time = 0;
+		philo->thread_ready = false;
 		determine_fork(philo, data->forks, i);
 	}
 }
@@ -101,7 +103,6 @@ int	fill_data(char **av, t_data *data)
 	data->time_to_sleep = ft_atol(av[4]);
 	if (av[5])
 		data->must_eat = ft_atol(av[5]);
-	data->all_threads_ready = false;
 	data->philo = malloc(sizeof(t_philo) * data->nb_philos);
 	data->forks = malloc(sizeof(t_fork) * data->nb_philos);
 	if (!data->philo || !data->forks)
@@ -112,8 +113,8 @@ int	fill_data(char **av, t_data *data)
 			return (2);
 		data->forks[i].id_fork = i;
 	}
-	if (safe_mutex(&data->table_lock, INIT))
-		return (3);
+	// if (safe_mutex(data->table_lock, INIT))
+	// 	return (3);
 	fill_philo(data);
 	return (0);
 }
@@ -131,8 +132,10 @@ int	check_and_init(int ac, char **av, t_data *data)
 			return (printf("Invalid argument\n"), 1);
 		i++;
 	}
+	if (ft_atol(av[1]) < 2)
+		return (printf("You need at least someone else ton inspire you\n"), 1);
 	if (av[5] && ft_atol(av[5]) == 0)
-		return (printf("No simulation needed\n"), 0);
+		return (printf("No simulation needed\n"), 1);
 	if (fill_data(av, data))
 		return (2);
 	return (0);

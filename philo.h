@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:27:43 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/23 19:02:16 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/24 18:25:02 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,18 +62,19 @@ typedef struct s_fork
 
 typedef	struct s_philo
 {
-	int			id;
-	long		meal_count;
-	long		time_lst_meal;
-	bool		full;
-	long		start_time;
-	long		end_time;
-	size_t		time;
-	pthread_t	threads_ids;
-	t_fork		*first_fork;
-	t_fork		*second_fork;
-	t_data		*data;
-
+	int				id;
+	long			meal_count;
+	long			time_lst_meal;
+	bool			full;
+	long			start_time;
+	long			end_time;
+	size_t			time;
+	pthread_t		threads_ids;
+	bool			thread_ready;
+	t_fork			*first_fork;
+	t_fork			*second_fork;
+	t_data			*data;
+	
 } t_philo;
 
 typedef struct s_data
@@ -83,7 +84,6 @@ typedef struct s_data
 	long			time_to_eat;
 	long			time_to_sleep;
 	long			must_eat;
-	bool			all_threads_ready;
 	t_fork			*forks;
 	pthread_mutex_t	*table_lock;
 	pthread_mutex_t	*meal_lock;
