@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 14:29:54 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/27 11:37:18 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/27 12:58:25 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,8 +112,8 @@ int	fill_data(char **av, t_data *data)
 			return (2);
 		data->forks[i].id_fork = i;
 	}
-	// if (safe_mutex(data->table_lock, INIT))
-	// 	return (3);
+	if (safe_mutex(&data->table_lock, INIT))
+		return (3);
 	fill_philo(data);
 	return (0);
 }

@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:26:41 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/27 12:15:34 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/27 12:53:30 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,9 +136,10 @@ __uint64_t get_time(void)
 	return ((time.tv_sec * (__uint64_t)1000) + (time.tv_usec / 1000));
 }
 	
-void set_bool(t_philo *philo, bool value)
+void set_bool(t_data *data, int i, bool value)
 {
-	philo->thread_ready = value;
+	data->philo[i].thread_ready = value;
+	// printf("the adresse of philo-bool is %p", data->philo[i].thread_ready);
 }
 
 
@@ -149,27 +150,40 @@ bool	get_bool(bool *value)
 	result = value;
 	return (result);
 }
-	
+
+void	check_wait(void *data)
+{
+	t_philo *philo;
+	philo = data;
+
+	philo->end_time = get_time();
+	printf("CHECK   thread %d est passe par ici au temps %ld\n", philo->id, philo->end_time - philo->start_time);
+
+	// printf("thread %d passed check", philo->id);
+}
+
+
 void	wait_for_threads(t_data *data)
 {
 	while (!get_bool(&data->philo->thread_ready))
 		;
+	check_wait(data);	
 }
+
 	
 void*	what_to_do(void *data)
 {
 	t_philo *philo;
-	__uint64_t start_time, end_time;
 	philo = data;
 	
-	start_time = get_time();
-	usleep(10000);
-	end_time = get_time();
-	// printf("le philo numero :%d est passe par ici\n", philo->id);
-	printf("thread %d est passe par ici au temps %ld\n", philo->id, end_time - start_time);
-	// usleep(10000);
+	philo->start_time = get_time();
+	wait_for_threads(data);
+	usleep(1000);
+	// printf("\n\n");
 	// philo->end_time = get_time();
-	printf("%ld time\n", end_time - start_time);
+	philo->end_time = get_time();
+	printf(" 2eme thread %d est passe par ici au temps %ld\n", philo->id, philo->end_time - philo->start_time);
+
 
 	return NULL;
 }
@@ -188,7 +202,7 @@ int	a_table(t_data *data)
 		{
 			if (safe_thread(&data->philo[i].threads_ids, what_to_do, &data->philo[i], CREATE))
 				return (1);
-			// set_bool(&data->philo[i].thread_ready, true);
+			set_bool(data/* ->philo[i].thread_ready */, i, true);
 		}
 		i = -1;
 		while (++i < data->nb_philos)
