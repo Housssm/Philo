@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 14:29:54 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/27 12:58:25 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/27 20:31:50 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,13 +82,28 @@ void	fill_philo(t_data *data)
 		philo->meal_count = 0;
 		philo->time_lst_meal = 0;
 		philo->full = false;
+		philo->dead = false;
 		philo->data = data;
 		philo->threads_ids = i + 1;
 		philo->start_time = 0;
 		philo->end_time = 0;
+		// philo->time = &philo->end_time - &philo->start_time; // demander confirmatiom
 		philo->thread_ready = false;
 		determine_fork(philo, data->forks, i);
+
 	}
+}
+
+int	all_mutexes_initialisation(t_data *data)
+{
+	if (safe_mutex(&data->table_lock, INIT))
+		return (1);
+	if (safe_mutex(&data->write_lock, INIT))
+		return (2);
+	// if (safe_mutex(&data->table_lock, INIT))
+	// 	return (3);
+
+	return (0);
 }
 
 int	fill_data(char **av, t_data *data)
@@ -112,9 +127,10 @@ int	fill_data(char **av, t_data *data)
 			return (2);
 		data->forks[i].id_fork = i;
 	}
-	if (safe_mutex(&data->table_lock, INIT))
-		return (3);
+	if (all_mutexes_initialisation(data))
+		return (printf("Error initialisation mutexes\n"), 3);
 	fill_philo(data);
+
 	return (0);
 }
 
@@ -131,8 +147,6 @@ int	check_and_init(int ac, char **av, t_data *data)
 			return (printf("Invalid argument\n"), 1);
 		i++;
 	}
-	if (ft_atol(av[1]) < 2)
-		return (printf("You need at least someone else ton inspire you\n"), 1);
 	if (av[5] && ft_atol(av[5]) == 0)
 		return (printf("No simulation needed\n"), 1);
 	if (fill_data(av, data))

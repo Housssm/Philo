@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:27:43 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/27 12:58:08 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/27 20:01:56 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,13 +24,6 @@
 # include <stdbool.h>
 
 typedef	struct s_data t_data;
-
-
-typedef struct s_fork
-{
-	int				id_fork;
-	pthread_mutex_t fork;
-}	t_fork;
 
 // typedef struct s_philo
 // {
@@ -60,17 +53,25 @@ typedef struct s_fork
 // 	t_philo			*philos;
 // }	t_params;
 
+typedef struct s_fork
+{
+	int				id_fork;
+	pthread_mutex_t fork;
+}	t_fork;
+
+
 typedef	struct s_philo
 {
 	int				id;
 	long			meal_count;
 	long			time_lst_meal;
 	bool			full;
+	bool			thread_ready;
+	bool			dead;
 	__uint64_t		start_time;
 	__uint64_t		end_time;
-	size_t			time;
+	__uint64_t		time;
 	pthread_t		threads_ids;
-	bool			thread_ready;
 	t_fork			*first_fork;
 	t_fork			*second_fork;
 	t_data			*data;
@@ -84,7 +85,7 @@ typedef struct s_data
 	long			time_to_eat;
 	long			time_to_sleep;
 	long			must_eat;
-	t_fork			*forks;
+	t_fork			*forks; // Vraiment utile ?
 	pthread_mutex_t	table_lock;
 	pthread_mutex_t	meal_lock;
 	pthread_mutex_t	write_lock;
@@ -101,11 +102,18 @@ typedef enum	e_mutsec
 	DESTROY,
 	CREATE,
 	JOIN,
-	DETACHE,	
+	DETACHE,
+	FORK,
+	EAT,
+	SLEEP,
+	THINK,
+	DIE,
 }	t_mutsec;
 
 int		check_and_init(int ac, char **av, t_data *data);
 void	free_struct(t_data *data);
+void	determine_fork(t_philo *philo, t_fork *forks, int position);
+
 
 
 #include "parsing.h"

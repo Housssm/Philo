@@ -6,102 +6,17 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:26:41 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/27 12:53:30 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/27 20:37:13 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-//safe malloc 37.21
+//les actions n sont pas coherentes
+//faire en sorte que lordre daffichage soit en fonction du temops et non pas des threads
+//verifier si laffichage se fait buien en milliseconde
 
 
-//creer une structure pour la fourchette
-//creer un droit dacces a la fourchette en regardant qui a le moins manger, si deux sont a egalite regarder qui na pas manger depuis le plus logntemps 
-//creer un nb de mutex correspondant au nombre de fourchette ?
-//faire des sleep correspondant au parametre, sleep pour temps de sommeil , tems de nouriture etc
-
-
-
-// creer un nombre de threah egale au nombre de pilo 
-//chque fourchette pour charque philo que oon doit proteger avec un mutex
-// proteger lecriture par un mutex aussi 
-
-// void action(int nb_philo, char **message, int time)
-// {
-// 	if ( message == "fork")
-// 	{	
-// 		printf("%d %d has taken a fork\n", time, nb_philo);
-// 		usleep(time);
-// 	}
-// 	if ( message == "eating")
-// 	{	
-// 		printf("%d %d is eating\n", time, nb_philo);
-// 		usleep(time);
-// 	}
-// 	if ( message == "sleeping")
-// 	{	
-// 		printf("%d %d is sleeping\n", time, nb_philo);
-// 		usleep(time);
-// 	}
-// 	if ( message == "thinking")
-// 	{	
-// 		printf("%d %d is thinking\n", time, nb_philo);
-// 		usleep(time);
-// 	}
-// 	if ( message == "dead")
-// 		printf("%d %d is dead\n", time, nb_philo);
-// }
- 
-// void	free_struct(t_params *params)
-// {	
-// /* 	need to free philo->threads_id  params->forks params->philos intialise dans parsing
-//  */	(void)params;
-// 	int	i;
-// 	i = -1;
-	
-// 	if (params->philos)
-// 		printf("TEST\n");
-// 	//destroy mutex
-// }
-
-
-// void*	what_to_do(void *structure)
-// {
-// 	t_philo *philo;
-	
-// 	philo = (t_philo *)structure;
-// 	// wait_for_threads(philo->params);
-// 	printf("passed here\n");
-// 	sleep(3);
-// 	return NULL;
-// }
-
-// int	a_table(t_params *params)
-// {
-// 	long	i;
-
-// 	i = 0;
-// 	if (params->must_eat == 0)
-// 		return (0);
-// 	while (i < params->nb_philo)
-// 	{
-// 		// params->ids[i] = i;
-// 		if (pthread_create(&params->philos->threads_id[i], NULL, what_to_do, (void *)i )!= 0)
-// 			return (free_struct(params), 1);
-// 		printf("Thread %ld has started\n", i);
-// 		i++;
-// 	}
-// 	i = 0;
-// 	while (i < params->nb_philo)
-// 	{
-// 		if (pthread_join(params->philos->threads_id[i], NULL) != 0 )
-// 			return (free_struct(params), 1);
-// 		printf("Thread %ld has finished\n", i);
-// 		i++;
-// 	}
-
-// 	return (0);
-// }
 
 void	free_struct(t_data *data) // data philo et data forks
 {
@@ -109,6 +24,9 @@ void	free_struct(t_data *data) // data philo et data forks
 		free(data->philo);
 	if (data->forks != NULL)
 		free(data->forks);
+
+	//safe_mutex(DESTROY); destroy all the mutexes
+		
 }
 
 int	safe_thread(pthread_t *thread, void*(*fct)(void *),void *data, t_mutsec opcode)
@@ -139,52 +57,88 @@ __uint64_t get_time(void)
 void set_bool(t_data *data, int i, bool value)
 {
 	data->philo[i].thread_ready = value;
-	// printf("the adresse of philo-bool is %p", data->philo[i].thread_ready);
 }
 
 
 bool	get_bool(bool *value)
 {
 	bool	result;
-	
+
 	result = value;
 	return (result);
 }
 
-void	check_wait(void *data)
-{
-	t_philo *philo;
-	philo = data;
-
-	philo->end_time = get_time();
-	printf("CHECK   thread %d est passe par ici au temps %ld\n", philo->id, philo->end_time - philo->start_time);
-
-	// printf("thread %d passed check", philo->id);
-}
-
-
-void	wait_for_threads(t_data *data)
-{
-	while (!get_bool(&data->philo->thread_ready))
+void	wait_for_threads(t_philo *philo)
+{	
+	while (!get_bool(&philo->thread_ready))
 		;
-	check_wait(data);	
 }
 
-	
+void	safe_writting(t_philo *philo, t_mutsec opcode)
+{
+	philo->end_time = get_time();
+	philo->time = philo->end_time - philo->start_time;
+
+	safe_mutex(&philo->data->write_lock, LOCK);
+	if ( opcode == FORK)
+		printf("%ld %d has taken a fork\n", philo->time, philo->id);
+	else if ( opcode == EAT)
+	{
+		printf("%ld %d is eating\n", philo->time, philo->id);
+		usleep(philo->data->time_to_eat);
+	}
+	else if ( opcode == SLEEP)
+	{
+		printf("%ld %d is spleeping\n", philo->time, philo->id);
+		usleep(philo->data->time_to_eat);
+	}
+	else if ( opcode == THINK)		
+	{
+		printf("%ld %d is thinking\n", philo->time, philo->id);
+		usleep(1);
+	}
+	else if ( opcode == DIE)
+		printf("%ld %d died\n", philo->time, philo->id);
+	safe_mutex(&philo->data->write_lock, UNLOCK);	
+}
+
 void*	what_to_do(void *data)
 {
 	t_philo *philo;
 	philo = data;
 	
+	wait_for_threads(philo);
 	philo->start_time = get_time();
-	wait_for_threads(data);
-	usleep(1000);
-	// printf("\n\n");
-	// philo->end_time = get_time();
-	philo->end_time = get_time();
-	printf(" 2eme thread %d est passe par ici au temps %ld\n", philo->id, philo->end_time - philo->start_time);
+	if (philo->id % 2 == 0)
+		usleep(10);
+	while (1)
+	{
+		if (philo->data->nb_philos % 2 == 0)
+			;//faire dormir le premier ou le dernier si nombre total est impaire
 
+		//ENTRE DANS LE MUTEX DE LA 1ERE FORK
+		safe_mutex(&philo->first_fork->fork, LOCK);
+		safe_writting(philo, FORK);
+		
+		//ENTRE MUTEX DE LA 2EME FORK		
+		safe_mutex(&philo->second_fork->fork, LOCK);
+		safe_writting(philo, FORK);
+		safe_writting(philo, EAT);
+		philo->meal_count += 1;
+		philo->time_lst_meal = get_time();
+		safe_mutex(&philo->second_fork->fork, UNLOCK);
+		safe_mutex(&philo->first_fork->fork, UNLOCK);
+		safe_writting(philo, SLEEP);
+		safe_writting(philo, THINK);
+		if (philo->time_lst_meal > philo->data->time_to_die)
+		{
+			safe_writting(philo, DIE);
+			break;
+		}
+		//Si tout les philo ont mange au moins must eat repas alors stopper la simulation 
+	}
 
+	
 	return NULL;
 }
 
