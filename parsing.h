@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 14:29:54 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/24 20:40:30 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/27 11:37:18 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,9 +77,8 @@ void	fill_philo(t_data *data)
 	i = -1;
 	while (++i < data->nb_philos)
 	{
-		philo = data->philo + 1;
+		philo = data->philo + i;
 		philo->id = i + 1;
-		// printf("\n\n\n\n valeur de id = = %d\n\n\n", philo->id
 		philo->meal_count = 0;
 		philo->time_lst_meal = 0;
 		philo->full = false;

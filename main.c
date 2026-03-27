@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:26:41 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/24 20:37:40 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/27 12:15:34 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,13 +124,16 @@ int	safe_thread(pthread_t *thread, void*(*fct)(void *),void *data, t_mutsec opco
 	return(0);
 }
 
+
+//TIME 
+
 __uint64_t get_time(void)
 {
-	struct timeval tv;
+	struct timeval time;
 
-	if (gettimeofday(&tv, NULL))
+	if (gettimeofday(&time, NULL))
 		return(0);
-	return ((tv.tv_sec * (__uint64_t)10000) + (tv.tv_sec / 1000));
+	return ((time.tv_sec * (__uint64_t)1000) + (time.tv_usec / 1000));
 }
 	
 void set_bool(t_philo *philo, bool value)
@@ -156,14 +159,18 @@ void	wait_for_threads(t_data *data)
 void*	what_to_do(void *data)
 {
 	t_philo *philo;
-	
+	__uint64_t start_time, end_time;
 	philo = data;
 	
-	philo->start_time = get_time();
+	start_time = get_time();
 	usleep(10000);
-	philo->end_time = get_time();
-	printf("thread %d est passe par ici au temps \n", philo->id);
-	// printf("thread %d est passe par ici au temps %ld\n", philo->id, philo->end_time - philo->start_time);
+	end_time = get_time();
+	// printf("le philo numero :%d est passe par ici\n", philo->id);
+	printf("thread %d est passe par ici au temps %ld\n", philo->id, end_time - start_time);
+	// usleep(10000);
+	// philo->end_time = get_time();
+	printf("%ld time\n", end_time - start_time);
+
 	return NULL;
 }
 
