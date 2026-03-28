@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 14:29:54 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/27 20:31:50 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/28 16:47:10 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,27 +82,29 @@ void	fill_philo(t_data *data)
 		philo->meal_count = 0;
 		philo->time_lst_meal = 0;
 		philo->full = false;
-		philo->dead = false;
 		philo->data = data;
 		philo->threads_ids = i + 1;
-		philo->start_time = 0;
-		philo->end_time = 0;
+		// philo->end_time = 0;
 		// philo->time = &philo->end_time - &philo->start_time; // demander confirmatiom
 		philo->thread_ready = false;
 		determine_fork(philo, data->forks, i);
-
+		if (safe_mutex(&philo->meal_lock, INIT))
+			return (printf("Erreur minitialisation mutexe meal\n"), 1);
+		if (safe_mutex(&philo->dead_lock, INIT))
+			return (printf("Erreur minitialisation mutexe dead\n"), 1)
 	}
 }
 
 int	all_mutexes_initialisation(t_data *data)
 {
 	if (safe_mutex(&data->table_lock, INIT))
-		return (1);
+		return (("Error initialisation mutexe table\n"), 1);
 	if (safe_mutex(&data->write_lock, INIT))
-		return (2);
+		return (("Error initialisation mutexe writting\n"), 2);
+	if (safe_mutex(&data->time_lock, INIT))
+		return (("Error initialisation mutexe time\n"), 3);
 	// if (safe_mutex(&data->table_lock, INIT))
 	// 	return (3);
-
 	return (0);
 }
 
@@ -119,6 +121,9 @@ int	fill_data(char **av, t_data *data)
 		data->must_eat = ft_atol(av[5]);
 	data->philo = malloc(sizeof(t_philo) * data->nb_philos);
 	data->forks = malloc(sizeof(t_fork) * data->nb_philos);
+	data->dead = false;
+	data->time_starded = false;
+	data->start_time = 0;
 	if (!data->philo || !data->forks)
 		return (printf("Malloc probleme\n"), 1);
 	while (++i < data->nb_philos)
@@ -128,7 +133,7 @@ int	fill_data(char **av, t_data *data)
 		data->forks[i].id_fork = i;
 	}
 	if (all_mutexes_initialisation(data))
-		return (printf("Error initialisation mutexes\n"), 3);
+		return (printf(3));
 	fill_philo(data);
 
 	return (0);

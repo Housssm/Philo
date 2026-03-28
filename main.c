@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:26:41 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/27 20:37:13 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/28 17:07:15 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,13 +45,13 @@ int	safe_thread(pthread_t *thread, void*(*fct)(void *),void *data, t_mutsec opco
 
 //TIME 
 
-__uint64_t get_time(void)
+long get_time(void)
 {
 	struct timeval time;
 
 	if (gettimeofday(&time, NULL))
 		return(0);
-	return ((time.tv_sec * (__uint64_t)1000) + (time.tv_usec / 1000));
+	return ((time.tv_sec * (long)1000) + (time.tv_usec / 1000));
 }
 	
 void set_bool(t_data *data, int i, bool value)
@@ -76,30 +76,52 @@ void	wait_for_threads(t_philo *philo)
 
 void	safe_writting(t_philo *philo, t_mutsec opcode)
 {
-	philo->end_time = get_time();
-	philo->time = philo->end_time - philo->start_time;
-
+	if (philo->data->dead == true)
+		return ;
 	safe_mutex(&philo->data->write_lock, LOCK);
+	philo->time = get_time() - philo->data->start_time;
 	if ( opcode == FORK)
 		printf("%ld %d has taken a fork\n", philo->time, philo->id);
 	else if ( opcode == EAT)
-	{
 		printf("%ld %d is eating\n", philo->time, philo->id);
-		usleep(philo->data->time_to_eat);
-	}
 	else if ( opcode == SLEEP)
-	{
 		printf("%ld %d is spleeping\n", philo->time, philo->id);
-		usleep(philo->data->time_to_eat);
-	}
 	else if ( opcode == THINK)		
-	{
 		printf("%ld %d is thinking\n", philo->time, philo->id);
-		usleep(1);
-	}
 	else if ( opcode == DIE)
 		printf("%ld %d died\n", philo->time, philo->id);
 	safe_mutex(&philo->data->write_lock, UNLOCK);	
+}
+
+void	eating(t_philo *philo)
+{
+	safe_mutex(&philo->first_fork, LOCK);
+	safe_writting(philo, FORK);
+	safe_mutex(&philo->second_fork, LOCK);
+	safe_writting(philo, FORK);
+	safe_writting(philo, EAT);
+	usleep(philo->data->time_to_eat);
+	safe_mutex(&philo->meal_lock, LOCK);
+	philo->meal_count += 1;
+	philo->time_lst_meal = get_time();
+	safe_mutex(&philo->meal_lock, UNLOCK);
+	safe_mutex(&philo->second_fork, UNLOCK);
+	safe_mutex(&philo->first_fork, UNLOCK);
+}
+
+void	which_action(t_philo *philo, t_mutsec opcode)
+{
+	if (opcode == SLEEP)
+	{
+		safe_writting(philo, SLEEP);
+		usleep(philo->data->time_to_sleep);
+	}
+	if (opcode == THINK)
+	{
+		safe_writting(philo, THINK);
+		usleep(philo->data->time_to_sleep);
+	}
+
 }
 
 void*	what_to_do(void *data)
@@ -108,40 +130,52 @@ void*	what_to_do(void *data)
 	philo = data;
 	
 	wait_for_threads(philo);
-	philo->start_time = get_time();
 	if (philo->id % 2 == 0)
 		usleep(10);
-	while (1)
+	while (philo->data->dead == false)
 	{
 		if (philo->data->nb_philos % 2 == 0)
 			;//faire dormir le premier ou le dernier si nombre total est impaire
-
-		//ENTRE DANS LE MUTEX DE LA 1ERE FORK
-		safe_mutex(&philo->first_fork->fork, LOCK);
-		safe_writting(philo, FORK);
-		
-		//ENTRE MUTEX DE LA 2EME FORK		
-		safe_mutex(&philo->second_fork->fork, LOCK);
-		safe_writting(philo, FORK);
-		safe_writting(philo, EAT);
-		philo->meal_count += 1;
-		philo->time_lst_meal = get_time();
-		safe_mutex(&philo->second_fork->fork, UNLOCK);
-		safe_mutex(&philo->first_fork->fork, UNLOCK);
-		safe_writting(philo, SLEEP);
-		safe_writting(philo, THINK);
-		if (philo->time_lst_meal > philo->data->time_to_die)
-		{
-			safe_writting(philo, DIE);
-			break;
-		}
-		//Si tout les philo ont mange au moins must eat repas alors stopper la simulation 
+		eating(philo);
+		which_action(philo, SLEEP);
+		which_action(philo, THINK);		
 	}
-
-	
 	return NULL;
 }
 
+// void	check_situation(t_data *data, t_mutsec opcode)
+// {
+	
+// }
+
+
+void	check_dead(void *dato)
+{
+	t_data	*data;
+	int		i;
+	
+	data = dato;
+	while (1)
+	{
+		i = -1;
+		while(++i < data->nb_philos)
+		{
+			safe_mutex(&data->philo[i].meal_lock, LOCK);
+			if ((get_time() - data->philo->time_lst_meal ) > data->philo->data->time_to_die)
+			{
+				safe_writting(data->philo, DIE);
+				safe_mutex(&data->philo[i].dead_lock, LOCK);
+				data->dead = true;
+				safe_mutex(&data->philo[i].dead_lock, UNLOCK);
+				return NULL;
+			}			
+			safe_mutex(&data->philo[i].meal_lock, UNLOCK);
+			return ;
+		}	
+		usleep(100);
+	}
+	return (NULL);
+}
 
 int	a_table(t_data *data)
 {
@@ -152,11 +186,12 @@ int	a_table(t_data *data)
 		printf("\n");//fonction a faire;
 	else
 	{
+		data->start_time = get_time();
 		while(++i < data->nb_philos)
 		{
 			if (safe_thread(&data->philo[i].threads_ids, what_to_do, &data->philo[i], CREATE))
 				return (1);
-			set_bool(data/* ->philo[i].thread_ready */, i, true);
+			set_bool(data, i, true);
 		}
 		i = -1;
 		while (++i < data->nb_philos)
@@ -164,6 +199,10 @@ int	a_table(t_data *data)
 			if (safe_thread(&data->philo[i].threads_ids, what_to_do, NULL, JOIN))
 				return (1);
 		}
+		if (safe_thread(&data->assas, check_dead, &data, CREATE))
+			return (3);
+		if (safe_thread(&data->assas, check_dead, &data, JOIN))
+			return (4);
 	}
 	return (0);
 }
