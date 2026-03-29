@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:26:41 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/28 17:07:15 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/29 18:21:04 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,9 +95,9 @@ void	safe_writting(t_philo *philo, t_mutsec opcode)
 
 void	eating(t_philo *philo)
 {
-	safe_mutex(&philo->first_fork, LOCK);
+	safe_mutex(&philo->first_fork->fork, LOCK);
 	safe_writting(philo, FORK);
-	safe_mutex(&philo->second_fork, LOCK);
+	safe_mutex(&philo->second_fork->fork, LOCK);
 	safe_writting(philo, FORK);
 	safe_writting(philo, EAT);
 	usleep(philo->data->time_to_eat);
@@ -105,8 +105,8 @@ void	eating(t_philo *philo)
 	philo->meal_count += 1;
 	philo->time_lst_meal = get_time();
 	safe_mutex(&philo->meal_lock, UNLOCK);
-	safe_mutex(&philo->second_fork, UNLOCK);
-	safe_mutex(&philo->first_fork, UNLOCK);
+	safe_mutex(&philo->second_fork->fork, UNLOCK);
+	safe_mutex(&philo->first_fork->fork, UNLOCK);
 }
 
 void	which_action(t_philo *philo, t_mutsec opcode)
@@ -119,7 +119,7 @@ void	which_action(t_philo *philo, t_mutsec opcode)
 	if (opcode == THINK)
 	{
 		safe_writting(philo, THINK);
-		usleep(philo->data->time_to_sleep);
+		usleep(100);
 	}
 
 }
@@ -132,10 +132,17 @@ void*	what_to_do(void *data)
 	wait_for_threads(philo);
 	if (philo->id % 2 == 0)
 		usleep(10);
-	while (philo->data->dead == false)
+	int i =-1;
+	// while (philo->data->dead == false)
+	while (++i < 10)
 	{
 		if (philo->data->nb_philos % 2 == 0)
-			;//faire dormir le premier ou le dernier si nombre total est impaire
+		{
+			if (philo->id == 1)
+				usleep(100);
+		}
+		if (philo->data->dead == true)
+			break;
 		eating(philo);
 		which_action(philo, SLEEP);
 		which_action(philo, THINK);		
@@ -143,13 +150,8 @@ void*	what_to_do(void *data)
 	return NULL;
 }
 
-// void	check_situation(t_data *data, t_mutsec opcode)
-// {
-	
-// }
 
-
-void	check_dead(void *dato)
+void*	check_dead(void *dato)
 {
 	t_data	*data;
 	int		i;
@@ -157,12 +159,13 @@ void	check_dead(void *dato)
 	data = dato;
 	while (1)
 	{
-		i = -1;
+		i =-1;
 		while(++i < data->nb_philos)
 		{
 			safe_mutex(&data->philo[i].meal_lock, LOCK);
 			if ((get_time() - data->philo->time_lst_meal ) > data->philo->data->time_to_die)
 			{
+				printf("TETSTETSTETSTETST\n");
 				safe_writting(data->philo, DIE);
 				safe_mutex(&data->philo[i].dead_lock, LOCK);
 				data->dead = true;
@@ -170,11 +173,11 @@ void	check_dead(void *dato)
 				return NULL;
 			}			
 			safe_mutex(&data->philo[i].meal_lock, UNLOCK);
-			return ;
+			return NULL;
 		}	
 		usleep(100);
 	}
-	return (NULL);
+	return NULL;
 }
 
 int	a_table(t_data *data)

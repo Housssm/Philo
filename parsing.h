@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 14:29:54 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/28 16:47:10 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/29 18:19:14 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ void	determine_fork(t_philo *philo, t_fork *forks, int position)
 	}
 }
 
-void	fill_philo(t_data *data)
+int	fill_philo(t_data *data)
 {
 	t_philo	*philo;
 	int		i;
@@ -91,18 +91,19 @@ void	fill_philo(t_data *data)
 		if (safe_mutex(&philo->meal_lock, INIT))
 			return (printf("Erreur minitialisation mutexe meal\n"), 1);
 		if (safe_mutex(&philo->dead_lock, INIT))
-			return (printf("Erreur minitialisation mutexe dead\n"), 1)
+			return (printf("Erreur minitialisation mutexe dead\n"), 1);
 	}
+	return (0);
 }
 
 int	all_mutexes_initialisation(t_data *data)
 {
 	if (safe_mutex(&data->table_lock, INIT))
-		return (("Error initialisation mutexe table\n"), 1);
+		return (printf("Error initialisation mutexe table\n"), 1);
 	if (safe_mutex(&data->write_lock, INIT))
-		return (("Error initialisation mutexe writting\n"), 2);
+		return (printf("Error initialisation mutexe writting\n"), 2);
 	if (safe_mutex(&data->time_lock, INIT))
-		return (("Error initialisation mutexe time\n"), 3);
+		return (printf("Error initialisation mutexe time\n"), 3);
 	// if (safe_mutex(&data->table_lock, INIT))
 	// 	return (3);
 	return (0);
@@ -133,8 +134,9 @@ int	fill_data(char **av, t_data *data)
 		data->forks[i].id_fork = i;
 	}
 	if (all_mutexes_initialisation(data))
-		return (printf(3));
-	fill_philo(data);
+		return (3);
+	if (fill_philo(data))
+		return (2);
 
 	return (0);
 }
