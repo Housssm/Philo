@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 14:29:54 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/29 18:19:14 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/31 21:47:03 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,10 +80,9 @@ int	fill_philo(t_data *data)
 		philo = data->philo + i;
 		philo->id = i + 1;
 		philo->meal_count = 0;
-		philo->time_lst_meal = 0;
 		philo->full = false;
 		philo->data = data;
-		philo->threads_ids = i + 1;
+		// philo->threads_ids = i + 1;
 		// philo->end_time = 0;
 		// philo->time = &philo->end_time - &philo->start_time; // demander confirmatiom
 		philo->thread_ready = false;
@@ -117,9 +116,11 @@ int	fill_data(char **av, t_data *data)
 	data->nb_philos = ft_atol(av[1]);
 	data->time_to_die = ft_atol(av[2]);
 	data->time_to_eat = ft_atol(av[3]);
-	data->time_to_sleep = ft_atol(av[4]);
+	data->time_to_sleep = ft_atol(av[4]) ;
 	if (av[5])
 		data->must_eat = ft_atol(av[5]);
+	else
+		data->must_eat = -1;
 	data->philo = malloc(sizeof(t_philo) * data->nb_philos);
 	data->forks = malloc(sizeof(t_fork) * data->nb_philos);
 	data->dead = false;
@@ -145,7 +146,7 @@ int	check_and_init(int ac, char **av, t_data *data)
 {
 	int	i;
 
-	i = 0;
+	i = 1;
 	data->philo = NULL;
 	data->forks = NULL;
 	while (i < ac)

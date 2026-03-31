@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:27:43 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/28 16:46:42 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/31 17:44:06 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,34 +25,6 @@
 
 typedef	struct s_data t_data;
 
-// typedef struct s_philo
-// {
-// 	int			id;//
-// 	long		meal_count;//
-// 	long		time_lst_meal;//
-// 	bool		full;//
-// 	pthread_t	*threads_id;//
-// 	t_fork		*first_fork;
-// 	t_fork		*second_fork;
-// 	t_params	*params;
-// }	t_philo;
-
-// typedef struct s_params
-// {
-// 	long			nb_philo;//
-// 	long			time_die;//
-// 	long			time_eat;//
-// 	long			time_sleep;//
-// 	long			*nb_fork;
-// 	long			must_eat;//
-// 	long			beg_dinner;
-// 	long		 	limit_meal;
-// 	bool			all_threads_ready;//
-// 	t_fork			*forks;//
-// 	pthread_mutex_t *mutex_waiting_thread;
-// 	t_philo			*philos;
-// }	t_params;
-
 typedef struct s_fork
 {
 	int				id_fork;
@@ -67,8 +39,7 @@ typedef	struct s_philo
 	long			time_lst_meal;
 	bool			full;
 	bool			thread_ready;
-	// long		end_time;
-	long		time;
+	long			time;
 	pthread_t		threads_ids;
 	t_fork			*first_fork;
 	t_fork			*second_fork;

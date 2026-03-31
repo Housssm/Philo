@@ -6,44 +6,59 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:26:41 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/29 18:21:04 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/03/31 21:52:07 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-//les actions n sont pas coherentes
-//faire en sorte que lordre daffichage soit en fonction du temops et non pas des threads
-//verifier si laffichage se fait buien en milliseconde
+// verification a faitr car echoue [5 600 150 150] | no one should die
+// rajouter condition ou le nombre de repas est atteint
 
 
 
-void	free_struct(t_data *data) // data philo et data forks
+void	free_struct(t_data *data)
 {
+	int	i;
+	
+	i = -1;
 	if (data->philo != NULL)
+	{	
+		while(++i < data->nb_philos)
+		{
+			safe_mutex(&data->philo[i].meal_lock, DESTROY);
+			safe_mutex(&data->philo[i].dead_lock, DESTROY);
+		}
 		free(data->philo);
+	}
+	i = -1;
 	if (data->forks != NULL)
+	{
+		while (++i<data->nb_philos)
+			safe_mutex(&data->forks[i].fork, DESTROY);
 		free(data->forks);
-
-	//safe_mutex(DESTROY); destroy all the mutexes
-		
-}
-
-int	safe_thread(pthread_t *thread, void*(*fct)(void *),void *data, t_mutsec opcode)
-{
-	if (opcode == CREATE)
-		return (pthread_create(thread, NULL, fct, data));
-	else if (opcode == DETACHE)
-		return (pthread_detach(*thread));
-	else if (opcode == JOIN)
-		return (pthread_join(*thread, NULL));
-	else 
-		return(printf("Invalide opcode for thread\n") ,1);
-	return(0);
+	}
+	safe_mutex(&data->time_lock, DESTROY);
+	safe_mutex(&data->write_lock, DESTROY);
+	safe_mutex(&data->table_lock, DESTROY);
 }
 
 
-//TIME 
+// int	safe_thread(pthread_t *thread, void*(*fct)(void *),void *data, t_mutsec opcode)
+// {
+// 	if (opcode == CREATE)
+// 		return (pthread_create(thread, NULL, fct, data));
+// 	else if (opcode == DETACHE)
+// 		return (pthread_detach(*thread));
+// 	else if (opcode == JOIN)
+// 		return (pthread_join(*thread, NULL));
+// 	else 
+// 		return(printf("Invalide opcode for thread\n") ,1);
+// 	return(0);
+// }
+
+
+// //TIME 
 
 long get_time(void)
 {
@@ -54,169 +69,172 @@ long get_time(void)
 	return ((time.tv_sec * (long)1000) + (time.tv_usec / 1000));
 }
 	
-void set_bool(t_data *data, int i, bool value)
-{
-	data->philo[i].thread_ready = value;
-}
+// void set_bool(t_data *data, int i, bool value)
+// {
+// 	data->philo[i].thread_ready = value;
+// }
 
 
-bool	get_bool(bool *value)
-{
-	bool	result;
+// bool	get_bool(bool *value)
+// {
+// 	bool	result;
 
-	result = value;
-	return (result);
-}
+// 	result = *value;
+// 	return (result);
+// }
 
-void	wait_for_threads(t_philo *philo)
-{	
-	while (!get_bool(&philo->thread_ready))
-		;
-}
+// void	wait_for_threads(t_philo *philo)
+// {	
+// 	while (!get_bool(&philo->thread_ready))
+// 	usleep(100)	;
+// }
 
-void	safe_writting(t_philo *philo, t_mutsec opcode)
-{
-	if (philo->data->dead == true)
-		return ;
-	safe_mutex(&philo->data->write_lock, LOCK);
-	philo->time = get_time() - philo->data->start_time;
-	if ( opcode == FORK)
-		printf("%ld %d has taken a fork\n", philo->time, philo->id);
-	else if ( opcode == EAT)
-		printf("%ld %d is eating\n", philo->time, philo->id);
-	else if ( opcode == SLEEP)
-		printf("%ld %d is spleeping\n", philo->time, philo->id);
-	else if ( opcode == THINK)		
-		printf("%ld %d is thinking\n", philo->time, philo->id);
-	else if ( opcode == DIE)
-		printf("%ld %d died\n", philo->time, philo->id);
-	safe_mutex(&philo->data->write_lock, UNLOCK);	
-}
+// void	safe_writting(t_philo *philo, t_mutsec opcode)
+// {
+// 	if (philo->data->dead == true)
+// 		return ;
+// 	safe_mutex(&philo->data->write_lock, LOCK);
+// 	philo->time = get_time() - philo->data->start_time;
+// 	if ( opcode == FORK)
+// 		printf("%ld %d has taken a fork\n", philo->time, philo->id);
+// 	else if ( opcode == EAT)
+// 		printf("%ld %d is eating\n", philo->time, philo->id);
+// 	else if ( opcode == SLEEP)
+// 		printf("%ld %d is sleeping\n", philo->time, philo->id);
+// 	else if ( opcode == THINK)		
+// 		printf("%ld %d is thinking\n", philo->time, philo->id);
+// 	else if ( opcode == DIE)
+// 		printf("%ld %d died\n", philo->time, philo->id);
+// 	safe_mutex(&philo->data->write_lock, UNLOCK);	
+// }
 
-void	eating(t_philo *philo)
-{
-	safe_mutex(&philo->first_fork->fork, LOCK);
-	safe_writting(philo, FORK);
-	safe_mutex(&philo->second_fork->fork, LOCK);
-	safe_writting(philo, FORK);
-	safe_writting(philo, EAT);
-	usleep(philo->data->time_to_eat);
-	safe_mutex(&philo->meal_lock, LOCK);
-	philo->meal_count += 1;
-	philo->time_lst_meal = get_time();
-	safe_mutex(&philo->meal_lock, UNLOCK);
-	safe_mutex(&philo->second_fork->fork, UNLOCK);
-	safe_mutex(&philo->first_fork->fork, UNLOCK);
-}
+// void	eating(t_philo *philo)
+// {
+// 	safe_mutex(&philo->first_fork->fork, LOCK);
+// 	safe_writting(philo, FORK);
+// 	safe_mutex(&philo->second_fork->fork, LOCK);
+// 	safe_writting(philo, FORK);
+// 	safe_writting(philo, EAT);
+// 	safe_mutex(&philo->meal_lock, LOCK);
+// 	philo->meal_count += 1;
+// 	philo->time_lst_meal = get_time();
+// 	usleep(philo->data->time_to_eat * 1000);
+// 	safe_mutex(&philo->meal_lock, UNLOCK);
+// 	safe_mutex(&philo->second_fork->fork, UNLOCK);
+// 	safe_mutex(&philo->first_fork->fork, UNLOCK);
+// }
 
-void	which_action(t_philo *philo, t_mutsec opcode)
-{
-	if (opcode == SLEEP)
-	{
-		safe_writting(philo, SLEEP);
-		usleep(philo->data->time_to_sleep);
-	}
-	if (opcode == THINK)
-	{
-		safe_writting(philo, THINK);
-		usleep(100);
-	}
+// void	which_action(t_philo *philo, t_mutsec opcode)
+// {
+// 	if (opcode == SLEEP)
+// 	{
+// 		safe_writting(philo, SLEEP);
+// 		usleep(philo->data->time_to_sleep * 1000);
+// 	}
+// 	if (opcode == THINK)
+// 	{
+// 		safe_writting(philo, THINK);
+// 		usleep(100);
+// 	}
 
-}
+// }
 
-void*	what_to_do(void *data)
-{
-	t_philo *philo;
-	philo = data;
+// void*	what_to_do(void *data)
+// {
+// 	t_philo *philo;
+// 	philo = data;
 	
-	wait_for_threads(philo);
-	if (philo->id % 2 == 0)
-		usleep(10);
-	int i =-1;
-	// while (philo->data->dead == false)
-	while (++i < 10)
-	{
-		if (philo->data->nb_philos % 2 == 0)
-		{
-			if (philo->id == 1)
-				usleep(100);
-		}
-		if (philo->data->dead == true)
-			break;
-		eating(philo);
-		which_action(philo, SLEEP);
-		which_action(philo, THINK);		
-	}
-	return NULL;
-}
+// 	wait_for_threads(philo);
+// 	safe_mutex(&philo->meal_lock, LOCK);
+// 	safe_mutex(&philo->meal_lock, UNLOCK);
+// 	if (philo->id % 2 == 0)
+// 		usleep(100);
+// 	while (get_bool(&philo->data->dead) == false)
+// 	{
+// 		if (philo->data->nb_philos % 2 == 0)
+// 		{
+// 			if (philo->id == 1)
+// 				usleep(1000);
+// 		}
+// 		if (philo->data->dead == true)
+// 			break;
+// 		eating(philo);
+// 		if (philo->data->dead == true)
+// 			break;
+// 		which_action(philo, SLEEP);
+// 		which_action(philo, THINK);		
+// 	}
+// 	return NULL;
+// }
 
 
-void*	check_dead(void *dato)
-{
-	t_data	*data;
-	int		i;
+// void*	check_dead(void *dato)
+// {
+// 	t_data	*data;
+// 	int		i;
 	
-	data = dato;
-	while (1)
-	{
-		i =-1;
-		while(++i < data->nb_philos)
-		{
-			safe_mutex(&data->philo[i].meal_lock, LOCK);
-			if ((get_time() - data->philo->time_lst_meal ) > data->philo->data->time_to_die)
-			{
-				printf("TETSTETSTETSTETST\n");
-				safe_writting(data->philo, DIE);
-				safe_mutex(&data->philo[i].dead_lock, LOCK);
-				data->dead = true;
-				safe_mutex(&data->philo[i].dead_lock, UNLOCK);
-				return NULL;
-			}			
-			safe_mutex(&data->philo[i].meal_lock, UNLOCK);
-			return NULL;
-		}	
-		usleep(100);
-	}
-	return NULL;
-}
+// 	data = (t_data *)dato;
+// 	while (data->dead == false)
+// 	{
+// 		i =-1;
+// 		while(++i < data->nb_philos)
+// 		{
+// 			safe_mutex(&data->philo[i].meal_lock, LOCK);
+// 			if ((get_time() - data->philo[i].time_lst_meal) > data->time_to_die)
+// 			{
+// 				safe_writting(&data->philo[i], DIE);
+// 				safe_mutex(&data->philo[i].dead_lock, LOCK);
+// 				data->dead = true;
+// 				safe_mutex(&data->philo[i].dead_lock, UNLOCK);
+// 				safe_mutex(&data->philo[i].meal_lock, UNLOCK);
+// 				return NULL;
+// 			}			
+// 			safe_mutex(&data->philo[i].meal_lock, UNLOCK);
+// 		}	
+// 		usleep(1000);
+// 	}
+// 	return NULL;
+// }
 
-int	a_table(t_data *data)
-{
-	int	i;
+// int	a_table(t_data *data)
+// {
+// 	int	i;
 	
-	i = -1;
-	if (data->nb_philos == 1)
-		printf("\n");//fonction a faire;
-	else
-	{
-		data->start_time = get_time();
-		while(++i < data->nb_philos)
-		{
-			if (safe_thread(&data->philo[i].threads_ids, what_to_do, &data->philo[i], CREATE))
-				return (1);
-			set_bool(data, i, true);
-		}
-		i = -1;
-		while (++i < data->nb_philos)
-		{
-			if (safe_thread(&data->philo[i].threads_ids, what_to_do, NULL, JOIN))
-				return (1);
-		}
-		if (safe_thread(&data->assas, check_dead, &data, CREATE))
-			return (3);
-		if (safe_thread(&data->assas, check_dead, &data, JOIN))
-			return (4);
-	}
-	return (0);
-}
+// 	i = -1;
+// 	if (data->nb_philos == 1)
+// 		printf("\n");//fonction a faire;
+// 	else
+// 	{
+// 		data->start_time = get_time();
+// 		if (safe_thread(&data->assas, check_dead, data, CREATE))
+// 			return (3);
+// 		while(++i < data->nb_philos)
+// 		{
+// 			data->philo->time_lst_meal = get_time();
+// 			if (safe_thread(&data->philo[i].threads_ids, what_to_do, &data->philo[i], CREATE))
+// 				return (1);
+// 			set_bool(data, i, true);
+// 		}
+// 		i = -1;
+// 		while (++i < data->nb_philos)
+// 		{
+// 			if (safe_thread(&data->philo[i].threads_ids, NULL, NULL, JOIN))
+// 				return (1);
+// 		}
+// 		if (safe_thread(&data->assas, NULL, NULL, JOIN))
+// 			return (4);
+// 	}
+// 	return (0);
+// }
 
 int	main(int ac, char **av)
 {
-	t_philo	philo;
+	// t_philo	philo;
 	t_data	data;
 	
-	philo.data = &data;
-	data.philo = &philo;
+	// philo.data = &data;
+	// data.philo = &philo;
+	memeset(&data, 0, sizeof(data));
 	if (ac == 5 || ac ==6 )
 	{
 		if (check_and_init(ac, av, &data))
@@ -228,5 +246,290 @@ int	main(int ac, char **av)
 		return(printf("Invalid number of argument\n"), 1);
 	free_struct(&data);
 	return (0);
+}
+
+
+/*
+CHANGE (important) :
+- Supprime le "thread_ready" non thread-safe et le remplace par une vraie barrière :
+  on utilise data->table_lock comme "start barrier".
+  Main lock table_lock avant de créer les threads.
+  Chaque thread commence par LOCK/UNLOCK table_lock => bloqué jusqu'au top départ.
+- Protège data->dead avec data->time_lock (utilisé comme state_lock).
+- Corrige l'init de time_lst_meal pour *chaque* philo.
+- Ne garde plus meal_lock pendant le sleep de eating().
+- Ajoute un precise_sleep() qui se réveille par petits morceaux (meilleur timing et arrêt plus réactif après death).
+*/
+
+static bool	sim_is_dead(t_data *data)
+{
+    bool	result;
+
+    safe_mutex(&data->time_lock, LOCK);
+    result = data->dead;
+    safe_mutex(&data->time_lock, UNLOCK);
+    return (result);
+}
+
+static void	sim_set_dead(t_data *data, bool value)
+{
+    safe_mutex(&data->time_lock, LOCK);
+    data->dead = value;
+    safe_mutex(&data->time_lock, UNLOCK);
+}
+
+static void	precise_sleep(t_data *data, long ms)
+{
+    long	start;
+    long	now;
+
+    start = get_time();
+    while (!sim_is_dead(data))
+    {
+        now = get_time();
+        if (now - start >= ms)
+            break;
+        /*
+        CHANGE:
+        - usleep(1000) (1ms) est un compromis simple :
+          moins de dérive que usleep(ms*1000) et réagit plus vite à death.
+        */
+        usleep(1000);
+    }
+}
+
+/*
+CHANGE:
+- log_action prend write_lock + protège "dead" de façon cohérente.
+- On ne log plus rien après dead, sauf l'action DIE.
+- Lock order stable: time_lock (state) -> write_lock (print).
+  => évite interblocages si ailleurs on respecte le même ordre.
+*/
+static void	log_action(t_philo *philo, t_mutsec opcode)
+{
+    long	ts;
+
+    safe_mutex(&philo->data->time_lock, LOCK);
+    if (philo->data->dead && opcode != DIE)
+    {
+        safe_mutex(&philo->data->time_lock, UNLOCK);
+        return ;
+    }
+    ts = get_time() - philo->data->start_time;
+    safe_mutex(&philo->data->write_lock, LOCK);
+
+    /* Re-check sous write_lock (évite une fenêtre de course) */
+    if (philo->data->dead && opcode != DIE)
+    {
+        safe_mutex(&philo->data->write_lock, UNLOCK);
+        safe_mutex(&philo->data->time_lock, UNLOCK);
+        return ;
+    }
+    if (opcode == FORK)
+        printf("%ld %d has taken a fork\n", ts, philo->id);
+    else if (opcode == EAT)
+        printf("%ld %d is eating\n", ts, philo->id);
+    else if (opcode == SLEEP)
+        printf("%ld %d is sleeping\n", ts, philo->id);
+    else if (opcode == THINK)
+        printf("%ld %d is thinking\n", ts, philo->id);
+    else if (opcode == DIE)
+        printf("%ld %d died\n", ts, philo->id);
+
+    safe_mutex(&philo->data->write_lock, UNLOCK);
+    safe_mutex(&philo->data->time_lock, UNLOCK);
+}
+
+int	safe_thread(pthread_t *thread, void *(*fct)(void *), void *data, t_mutsec opcode)
+{
+    if (opcode == CREATE)
+        return (pthread_create(thread, NULL, fct, data));
+    else if (opcode == DETACHE)
+        return (pthread_detach(*thread));
+    else if (opcode == JOIN)
+        return (pthread_join(*thread, NULL));
+    return (printf("Invalid opcode for thread\n"), 1);
+}
+
+
+
+/*
+CHANGE:
+- meal_lock ne doit protéger QUE la mise à jour des champs.
+- On ne dort pas en gardant meal_lock, sinon le monitor ne peut pas lire last_meal.
+- precise_sleep rend l'arrêt plus rapide en cas de dead.
+*/
+static void	eating(t_philo *philo)
+{
+    safe_mutex(&philo->first_fork->fork, LOCK);
+    log_action(philo, FORK);
+
+    /* Optionnel: sortie rapide si dead */
+    if (sim_is_dead(philo->data))
+    {
+        safe_mutex(&philo->first_fork->fork, UNLOCK);
+        return ;
+    }
+
+    safe_mutex(&philo->second_fork->fork, LOCK);
+    log_action(philo, FORK);
+
+    safe_mutex(&philo->meal_lock, LOCK);
+    philo->meal_count += 1;
+    philo->time_lst_meal = get_time();
+    safe_mutex(&philo->meal_lock, UNLOCK);
+
+    log_action(philo, EAT);
+    precise_sleep(philo->data, philo->data->time_to_eat);
+
+    safe_mutex(&philo->second_fork->fork, UNLOCK);
+    safe_mutex(&philo->first_fork->fork, UNLOCK);
+}
+
+static void	do_sleep(t_philo *philo)
+{
+    log_action(philo, SLEEP);
+    precise_sleep(philo->data, philo->data->time_to_sleep);
+}
+
+static void	do_think(t_philo *philo)
+{
+    log_action(philo, THINK);
+    /* Petit yield pour réduire le busy-loop */
+    usleep(500);
+}
+
+void	*what_to_do(void *data)
+{
+    t_philo	*philo;
+
+    philo = (t_philo *)data;
+
+    /*
+    CHANGE: vraie barrière de départ
+    - Main lock table_lock avant de créer les threads
+    - Chaque thread lock/unlock => attend le top départ
+    */
+    safe_mutex(&philo->data->table_lock, LOCK);
+    safe_mutex(&philo->data->table_lock, UNLOCK);
+
+    /* Stagger léger pour réduire la contention au début */
+    if (philo->id % 2 == 0)
+        usleep(1000);
+
+    while (!sim_is_dead(philo->data))
+    {
+        eating(philo);
+        if (sim_is_dead(philo->data))
+            break;
+        do_sleep(philo);
+        do_think(philo);
+    }
+    return (NULL);
+}
+
+/*
+CHANGE:
+- Ne touche dead qu'avec time_lock (state lock).
+- Log "died" une seule fois.
+- Utilise meal_lock uniquement pour lire time_lst_meal.
+*/
+void	*check_dead(void *dato)
+{
+    t_data	*data;
+    int		i;
+    long	last_meal;
+
+    data = (t_data *)dato;
+    while (!sim_is_dead(data))
+    {
+        i = -1;
+        while (++i < data->nb_philos && !sim_is_dead(data))
+        {
+            safe_mutex(&data->philo[i].meal_lock, LOCK);
+            last_meal = data->philo[i].time_lst_meal;
+            safe_mutex(&data->philo[i].meal_lock, UNLOCK);
+
+            if (get_time() - last_meal > data->time_to_die)
+            {
+                /* Set dead + print atomiquement (ordre lock: time_lock -> write_lock) */
+                safe_mutex(&data->time_lock, LOCK);
+                if (!data->dead)
+                {
+                    data->dead = true;
+                    safe_mutex(&data->write_lock, LOCK);
+                    printf("%ld %d died\n",
+                        get_time() - data->start_time,
+                        data->philo[i].id);
+                    safe_mutex(&data->write_lock, UNLOCK);
+                }
+                safe_mutex(&data->time_lock, UNLOCK);
+                return (NULL);
+            }
+        }
+        usleep(1000);
+    }
+    return (NULL);
+}
+
+/*
+CHANGE:
+- Cas 1 philosophe géré proprement:
+  prend une fourchette, attend time_to_die, meurt.
+- start_time + time_lst_meal initialisés avant de libérer la barrière.
+- FIX: data->philo[i].time_lst_meal (au lieu de data->philo->...)
+*/
+int	a_table(t_data *data)
+{
+    int	i;
+
+    if (data->nb_philos == 1)
+    {
+        data->start_time = get_time();
+        data->philo[0].time_lst_meal = data->start_time;
+        log_action(&data->philo[0], FORK);
+        precise_sleep(data, data->time_to_die);
+        sim_set_dead(data, true);
+        log_action(&data->philo[0], DIE);
+        return (0);
+    }
+
+    /* Barrière de départ */
+    safe_mutex(&data->table_lock, LOCK);
+
+    data->start_time = get_time();
+    i = -1;
+    while (++i < data->nb_philos)
+        data->philo[i].time_lst_meal = data->start_time;
+
+    /* Lancer le monitor avant le départ réel */
+    if (safe_thread(&data->assas, check_dead, data, CREATE))
+    {
+        safe_mutex(&data->table_lock, UNLOCK);
+        return (3);
+    }
+
+    i = -1;
+    while (++i < data->nb_philos)
+    {
+        if (safe_thread(&data->philo[i].threads_ids, what_to_do, &data->philo[i], CREATE))
+        {
+            safe_mutex(&data->table_lock, UNLOCK);
+            return (1);
+        }
+    }
+
+    /* Top départ */
+    safe_mutex(&data->table_lock, UNLOCK);
+
+    i = -1;
+    while (++i < data->nb_philos)
+    {
+        if (safe_thread(&data->philo[i].threads_ids, NULL, NULL, JOIN))
+            return (1);
+    }
+    if (safe_thread(&data->assas, NULL, NULL, JOIN))
+        return (4);
+    return (0);
 }
 
