@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:27:43 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/31 17:44:06 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/04/01 12:36:01 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 # define PHILO_H
 
 # include <stdio.h>
-# include <string.h>
 # include <unistd.h>
 # include <stdlib.h>
 # include <threads.h>
@@ -22,6 +21,7 @@
 # include <sys/time.h>
 # include <limits.h>
 # include <stdbool.h>
+# include <string.h>
 
 typedef	struct s_data t_data;
 

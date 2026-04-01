@@ -1,14 +1,14 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/09 09:26:41 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/04/01 13:10:48 by hoel-har         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    main.txt                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2026/03/09 09:26:41 by hoel-har          #+#    #+#              #
+#    Updated: 2026/04/01 13:10:31 by hoel-har         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
 
 #include "philo.h"
 
@@ -68,26 +68,20 @@ long get_time(void)
 		return(0);
 	return ((time.tv_sec * (long)1000) + (time.tv_usec / 1000));
 }
+	
+// void set_bool(t_data *data, int i, bool value)
+// {
+// 	data->philo[i].thread_ready = value;
+// }
 
 
+// bool	get_bool(bool *value)
+// {
+// 	bool	result;
 
-static bool	is_dead(t_data *data)
-{
-	bool	result;
-
-	safe_mutex(&data->time_lock, LOCK);
-	result = data->dead;
-	safe_mutex(&data->time_lock, UNLOCK);
-	return (result);
-}
-
-static void	set_dead(t_data *data, bool value)
-{
-	safe_mutex(&data->time_lock, LOCK);
-	data->dead = value;
-	safe_mutex(&data->time_lock, UNLOCK);
-}
-
+// 	result = *value;
+// 	return (result);
+// }
 
 // void	wait_for_threads(t_philo *philo)
 // {	
@@ -174,59 +168,32 @@ static void	set_dead(t_data *data, bool value)
 // }
 
 
-void*	check_dead(void *dato)
-{
-	t_data	*data;
-	int		i;
-	long	last_meal;
+// void*	check_dead(void *dato)
+// {
+// 	t_data	*data;
+// 	int		i;
 	
-	data = (t_data *)dato;
-	while (!is_dead(data))
-	{
-		i =-1;
-		while(++i < data->nb_philos && !is_dead(data))
-		{
-			safe_mutex(&data->philo[i].meal_lock, LOCK);
-			last_meal = data->philo[i].time_lst_meal;
-			safe_mutex(&data->philo[i].meal_lock, UNLOCK);
-			
-			if ((get_time() - data->philo[i].time_lst_meal) > data->time_to_die)
-			{
-				safe_mutex()
-			}			
-			safe_mutex(&data->philo[i].meal_lock, UNLOCK);
-		}	
-		usleep(1000);
-	}
-	return NULL;
-}
-
-// void*	lonely_routine(void *data)
-// {
-// 	t_philo	*philo;
-
-// 	philo = (t_philo*)data;
-// 	while(philo->data->dead == false)
+// 	data = (t_data *)dato;
+// 	while (data->dead == false)
 // 	{
-// 		safe_mutex(&philo->first_fork->fork, LOCK);
-// 		safe_writting(&philo, FORK);
-// 		safe_mutex(&philo->first_fork->fork, UNLOCK);
+// 		i =-1;
+// 		while(++i < data->nb_philos)
+// 		{
+// 			safe_mutex(&data->philo[i].meal_lock, LOCK);
+// 			if ((get_time() - data->philo[i].time_lst_meal) > data->time_to_die)
+// 			{
+// 				safe_writting(&data->philo[i], DIE);
+// 				safe_mutex(&data->philo[i].dead_lock, LOCK);
+// 				data->dead = true;
+// 				safe_mutex(&data->philo[i].dead_lock, UNLOCK);
+// 				safe_mutex(&data->philo[i].meal_lock, UNLOCK);
+// 				return NULL;
+// 			}			
+// 			safe_mutex(&data->philo[i].meal_lock, UNLOCK);
+// 		}	
+// 		usleep(1000);
 // 	}
-// }
-
-// int	lonely(t_philo *philo)
-// {
-// 	philo->data->start_time = get_time();
-//     philo[0].time_lst_meal = philo->data->start_time;
-// 	if (safe_thread(&philo->data->assas, check_dead, philo->data, CREATE))
-// 		return (3);
-// 	if (safe_thread(&philo[0].threads_ids, lonely_routine, philo, CREATE))
-// 		return (1);
-// 	if (safe_thread(&philo[0].threads_ids, NULL, NULL, JOIN))
-// 		return (1);
-// 	if (safe_thread(&philo->data->assas, NULL, NULL, JOIN))
-// 		return (4);
-// 	return (0);	
+// 	return NULL;
 // }
 
 // int	a_table(t_data *data)
@@ -235,29 +202,28 @@ void*	check_dead(void *dato)
 	
 // 	i = -1;
 // 	if (data->nb_philos == 1)
-// 		return (lonely(data->philo));
-// 	safe_mutex(&data->table_lock, LOCK); // protection
-	
-// 	data->start_time = get_time();
-// 	if (safe_thread(&data->assas, check_dead, data, CREATE))
-// 		return (safe_mutex(&data->table_lock, UNLOCK), 3);
-		
-// 	while(++i < data->nb_philos)
+// 		printf("\n");//fonction a faire;
+// 	else
 // 	{
-// 		data->philo[i].time_lst_meal = get_time();
-// 		if (safe_thread(&data->philo[i].threads_ids, what_to_do, &data->philo[i], CREATE))
-// 			return (safe_mutex(&data->table_lock, UNLOCK), 1);
-// 		// set_bool(data, i, true);
+// 		data->start_time = get_time();
+// 		if (safe_thread(&data->assas, check_dead, data, CREATE))
+// 			return (3);
+// 		while(++i < data->nb_philos)
+// 		{
+// 			data->philo->time_lst_meal = get_time();
+// 			if (safe_thread(&data->philo[i].threads_ids, what_to_do, &data->philo[i], CREATE))
+// 				return (1);
+// 			set_bool(data, i, true);
+// 		}
+// 		i = -1;
+// 		while (++i < data->nb_philos)
+// 		{
+// 			if (safe_thread(&data->philo[i].threads_ids, NULL, NULL, JOIN))
+// 				return (1);
+// 		}
+// 		if (safe_thread(&data->assas, NULL, NULL, JOIN))
+// 			return (4);
 // 	}
-// 	safe_mutex(&data->table_lock, UNLOCK);
-// 	i = -1;
-// 	while (++i < data->nb_philos)
-// 	{
-// 		if (safe_thread(&data->philo[i].threads_ids, NULL, NULL, JOIN))
-// 			return (1);
-// 	}
-// 	if (safe_thread(&data->assas, NULL, NULL, JOIN))
-// 		return (4);
 // 	return (0);
 // }
 
@@ -474,8 +440,8 @@ void	*check_dead(void *dato)
                     data->dead = true;
                     safe_mutex(&data->write_lock, LOCK);
                     printf("%ld %d died\n",
-                    get_time() - data->start_time,
-                    data->philo[i].id);
+                        get_time() - data->start_time,
+                        data->philo[i].id);
                     safe_mutex(&data->write_lock, UNLOCK);
                 }
                 safe_mutex(&data->time_lock, UNLOCK);
@@ -550,8 +516,11 @@ int	a_table(t_data *data)
 
 int	main(int ac, char **av)
 {
+	// t_philo	philo;
 	t_data	data;
 	
+	// philo.data = &data;
+	// data.philo = &philo;
 	memset(&data, 0, sizeof(data));
 	if (ac == 5 || ac ==6 )
 	{
@@ -565,3 +534,57 @@ int	main(int ac, char **av)
 	free_struct(&data);
 	return (0);
 }
+
+
+
+********************************* MEMO **********************************************************
+
+Bilan “à retenir” (organisation + ordre des mutex)
+1) 1 donnée partagée = 1 mutex unique
+data->dead (état global de fin)
+→ protégé uniquement par data->time_lock (lecture + écriture).
+Ne jamais l’écrire sous un autre mutex (ex: philo[i].dead_lock) sinon data race.
+philo[i].time_lst_meal + philo[i].meal_count
+→ protégés par philo[i].meal_lock.
+Affichage (printf)
+→ protégé par data->write_lock.
+Fourchettes
+→ chaque fourchette a son mutex fork->fork.
+2) Règle d’or : ordre de lock global (hiérarchie)
+Choisis un ordre et respecte-le partout. Celui que tu utilises dans ta version “propre” est bon :
+
+time_lock (state: dead / start_time si besoin)
+write_lock (print)
+meal_lock (données d’un philo)
+fork mutex (ressources “physiques”)
+Point clé : ne jamais prendre write_lock puis ensuite time_lock si ailleurs tu fais l’inverse, sinon deadlock possible.
+
+3) Sections critiques minimales (tenir un lock le moins longtemps possible)
+Sous meal_lock : copier time_lst_meal dans une variable locale, puis unlock.
+Ensuite seulement : faire les calculs / get_time() / décisions.
+Ne jamais dormir (usleep, precise_sleep) en tenant meal_lock ou un mutex de fourchette “inutilement”.
+Sinon tu bloques le monitor ou les autres threads → timings faux + morts “injustes”.
+4) “Death + print” doit être atomique
+Quand tu détectes la mort :
+
+lock time_lock
+si dead == false : set dead = true
+lock write_lock, print "died", unlock write_lock
+unlock time_lock
+Ça garantit :
+
+un seul message died
+plus aucun log après la mort (sauf died), si tes fonctions de log re-check dead.
+5) Fourchettes : éviter le deadlock
+Règle simple et mémorisable :
+
+toujours lock les fourchettes dans un ordre total (ex: plus petit index d’abord, puis plus grand), ou stratégie pair/impair cohérente.
+ne mélange pas les ordres selon les endroits du code.
+6) Barrière de départ
+table_lock peut servir de “start barrier” : main lock avant de créer, chaque thread fait lock/unlock au début, puis main unlock → départ synchro, moins de courses au start.
+Mémo ultra-court
+dead ⇢ time_lock (toujours)
+print ⇢ write_lock
+last_meal/meal_count ⇢ meal_lock (lock très court, pas de sleep dedans)
+forks ⇢ ordre fixe (ou pair/impair)
+ordre global à respecter : time_lock → write_lock (au minimum)
