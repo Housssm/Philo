@@ -1,14 +1,4 @@
-117 1 has taken a fork
-126 1 has taken a fork
-126 1 is eating
+119 3 has taken a fork
 127 3 has taken a fork
-327 1 is sleeping
-328 3 has taken a fork
-328 3 is eating
-527 1 is thinking
-528 1 has taken a fork
-528 1 has taken a fork
-528 1 is eating
-528 3 is sleeping
-528 2 has taken a fork
-601 2 died
+127 3 is eating
+346 1 died

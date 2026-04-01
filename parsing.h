@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 14:29:54 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/03/31 21:47:03 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/04/01 16:18:57 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,8 +103,8 @@ int	all_mutexes_initialisation(t_data *data)
 		return (printf("Error initialisation mutexe writting\n"), 2);
 	if (safe_mutex(&data->time_lock, INIT))
 		return (printf("Error initialisation mutexe time\n"), 3);
-	// if (safe_mutex(&data->table_lock, INIT))
-	// 	return (3);
+	if (safe_mutex(&data->table_lock, INIT))
+		return (3);
 	return (0);
 }
 
