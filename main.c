@@ -6,11 +6,22 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:26:41 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/04/02 19:02:26 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/04/02 19:52:33 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
+
+
+
+// erreur :
+
+// should die is ok should not die all false 
+// - uneven numbers - one should die  quelques erreurs 
+// - testing even number they should not die 50 / 50 
+// - testing even number overkill they should not die MAJORITY FAULSE
+// - testing uneven number should not die 1/3
+// - testing uneven number should not die overkill MAJORITY FALSE
 
 void	free_struct(t_data *data)
 {
@@ -43,9 +54,9 @@ static bool	is_dead(t_data *data)
 {
 	bool	result;
 
-	safe_mutex(&data->time_lock, LOCK);
+	safe_mutex(&data->count_lock, LOCK);
 	result = data->dead;
-	safe_mutex(&data->time_lock, UNLOCK);
+	safe_mutex(&data->count_lock, UNLOCK);
 	return (result);
 }
 
@@ -179,7 +190,7 @@ static void	wait_start(t_data *data)
 			return ;
 		}
 		safe_mutex(&data->table_lock, UNLOCK);
-		usleep(100);
+		usleep(10);
 	}
 }
 
@@ -207,72 +218,72 @@ void*	what_to_do(void *data)
 
 static bool	all_philos_full(t_data *data)
 {
-    int		i;
-    int		full_count;
-    long	meal_count;
+	int		i;
+	int		full_count;
+	long	meal_count;
 
-    if (data->must_eat == -1)
-        return (false);
-    full_count = 0;
-    i = -1;
-    while (++i < data->nb_philos)
-    {
-        safe_mutex(&data->philo[i].meal_lock, LOCK);
-        meal_count = data->philo[i].meal_count;
-        safe_mutex(&data->philo[i].meal_lock, UNLOCK);
-        if (meal_count >= data->must_eat)
-            full_count++;
-    }
-    return (full_count == data->nb_philos);
+	if (data->must_eat == -1)
+		return (false);
+	full_count = 0;
+	i = -1;
+	while (++i < data->nb_philos)
+	{
+		safe_mutex(&data->philo[i].meal_lock, LOCK);
+		meal_count = data->philo[i].meal_count;
+		safe_mutex(&data->philo[i].meal_lock, UNLOCK);
+		if (meal_count >= data->must_eat)
+			full_count++;
+	}
+	return (full_count == data->nb_philos);
 }
 
 static void	mark_full_and_stop(t_data *data)
 {
-    safe_mutex(&data->count_lock, LOCK);
-    data->full = true;
-    safe_mutex(&data->count_lock, UNLOCK);
-    set_dead(data, true);
+	safe_mutex(&data->count_lock, LOCK);
+	data->full = true;
+	safe_mutex(&data->count_lock, UNLOCK);
+	set_dead(data, true);
 }
 
 static bool	check_one_death(t_data *data, int i)
 {
-    long	last_meal;
+	long	last_meal;
 
-    safe_mutex(&data->philo[i].meal_lock, LOCK);
-    last_meal = data->philo[i].time_lst_meal;
-    safe_mutex(&data->philo[i].meal_lock, UNLOCK);
-    if ((get_time() - last_meal) <= data->time_to_die)
-        return (false);
-    safe_mutex(&data->time_lock, LOCK);
-    if (!data->dead)
-    {
-        data->dead = true;
-        safe_mutex(&data->write_lock, LOCK);
-        printf("%ld %d died\n", get_time() - data->start_time, data->philo[i].id);
-        safe_mutex(&data->write_lock, UNLOCK);
-    }
-    safe_mutex(&data->time_lock, UNLOCK);
-    return (true);
+	safe_mutex(&data->philo[i].meal_lock, LOCK);
+	last_meal = data->philo[i].time_lst_meal;
+	safe_mutex(&data->philo[i].meal_lock, UNLOCK);
+	if ((get_time() - last_meal) <= data->time_to_die)
+		return (false);
+	safe_mutex(&data->time_lock, LOCK);
+	if (!data->dead)
+	{
+		data->dead = true;
+		safe_mutex(&data->write_lock, LOCK);
+		printf("%ld %d died\n", get_time() - data->start_time, data->philo[i].id);
+		safe_mutex(&data->write_lock, UNLOCK);
+	}
+	safe_mutex(&data->time_lock, UNLOCK);
+	return (true);
 }
 
 void*	check_dead(void *dato)
 {
-    t_data	*data;
-    int		i;
+	t_data	*data;
+	int		i;
 
-    data = (t_data *)dato;
+	data = (t_data *)dato;
 	wait_start(data);
-    while (!is_dead(data))
-    {
-        if (all_philos_full(data))
-            return (mark_full_and_stop(data), NULL);
-        i = -1;
-        while (++i < data->nb_philos && !is_dead(data))
-            if (check_one_death(data, i))
-                return (NULL);
-        usleep(1000);
-    }
-    return (NULL);
+	while (!is_dead(data))
+	{
+		if (all_philos_full(data))
+			return (mark_full_and_stop(data), NULL);
+		i = -1;
+		while (++i < data->nb_philos && !is_dead(data))
+			if (check_one_death(data, i))
+				return (NULL);
+		usleep(1000);
+	}
+	return (NULL);
 }
 
 int	lonely(t_data *data)
