@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:27:43 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/04/01 12:36:01 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/04/02 14:55:17 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,11 +57,14 @@ typedef struct s_data
 	long			time_to_sleep;
 	long			must_eat;
 	long			start_time;
+	long			nb_philo_full;
 	bool			dead;
+	bool			full;
 	bool			time_starded;
-	t_fork			*forks; // Vraiment utile ?
-	pthread_t	assas;
+	t_fork			*forks;
+	pthread_t		assas;
 	pthread_mutex_t	time_lock;
+	pthread_mutex_t	count_lock;
 	pthread_mutex_t	table_lock;
 	pthread_mutex_t	write_lock;
 	t_philo			*philo;

@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:26:41 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/04/01 16:22:25 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/04/02 15:01:30 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,46 @@ static bool	is_dead(t_data *data)
 	result = data->dead;
 	safe_mutex(&data->time_lock, UNLOCK);
 	return (result);
+}
+
+static bool	is_full(t_data *data)
+{
+	bool	result;
+
+	safe_mutex(&data->time_lock, LOCK);
+	result = data->full;
+	safe_mutex(&data->time_lock, UNLOCK);
+	return (result);
+}
+
+void	check_full(t_data *data)
+{
+	int	i;
+
+	if (data->must_eat != -1)
+	{	
+		while(!is_dead(data))
+		{
+			i = -1;
+			while (++i < data->nb_philos)
+			{
+				if (data->philo[i].meal_count >= data->must_eat)
+				{
+					safe_mutex(&data->count_lock, LOCK);
+					data->nb_philo_full += 1;
+					safe_mutex(&data->count_lock, UNLOCK);
+				}
+				if (data->nb_philo_full == data->must_eat)
+				{
+					safe_mutex(&data->count_lock, LOCK);
+					data->full = true;
+					safe_mutex(&data->count_lock, UNLOCK);
+					return ;
+				}
+				sleep(100);
+			}
+		}
+	}
 }
 
 static void	set_dead(t_data *data, bool value)
@@ -150,6 +190,7 @@ void	eating(t_philo *philo)
 	safe_mutex(&philo->meal_lock, UNLOCK);
 	safe_writting(philo, EAT);
 	precise_sleep(philo->data, philo->data->time_to_eat);
+	check_full(philo->data);
 	safe_mutex(&philo->second_fork->fork, UNLOCK);
 	safe_mutex(&philo->first_fork->fork, UNLOCK);
 }

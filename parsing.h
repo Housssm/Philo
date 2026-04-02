@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 14:29:54 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/04/01 16:18:57 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/04/02 14:55:17 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,7 +104,9 @@ int	all_mutexes_initialisation(t_data *data)
 	if (safe_mutex(&data->time_lock, INIT))
 		return (printf("Error initialisation mutexe time\n"), 3);
 	if (safe_mutex(&data->table_lock, INIT))
-		return (3);
+		return (printf("Error initialisation mutexe time\n"), 4);
+	if (safe_mutex(&data->count_lock, INIT))
+		return (printf("Error initialisation mutexe time\n"), 5);
 	return (0);
 }
 
@@ -124,8 +126,10 @@ int	fill_data(char **av, t_data *data)
 	data->philo = malloc(sizeof(t_philo) * data->nb_philos);
 	data->forks = malloc(sizeof(t_fork) * data->nb_philos);
 	data->dead = false;
+	data->full = false;
 	data->time_starded = false;
 	data->start_time = 0;
+	data->nb_philo_full = 0;
 	if (!data->philo || !data->forks)
 		return (printf("Malloc probleme\n"), 1);
 	while (++i < data->nb_philos)
