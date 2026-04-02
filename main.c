@@ -6,16 +6,11 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:26:41 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/04/02 15:01:30 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/04/02 19:02:26 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
-
-// verification a faitr car echoue [5 600 150 150] | no one should die
-// rajouter condition ou le nombre de repas est atteint
-
-
 
 void	free_struct(t_data *data)
 {
@@ -41,6 +36,7 @@ void	free_struct(t_data *data)
 	safe_mutex(&data->time_lock, DESTROY);
 	safe_mutex(&data->write_lock, DESTROY);
 	safe_mutex(&data->table_lock, DESTROY);
+	safe_mutex(&data->count_lock, DESTROY);
 }
 
 static bool	is_dead(t_data *data)
@@ -61,36 +57,6 @@ static bool	is_full(t_data *data)
 	result = data->full;
 	safe_mutex(&data->time_lock, UNLOCK);
 	return (result);
-}
-
-void	check_full(t_data *data)
-{
-	int	i;
-
-	if (data->must_eat != -1)
-	{	
-		while(!is_dead(data))
-		{
-			i = -1;
-			while (++i < data->nb_philos)
-			{
-				if (data->philo[i].meal_count >= data->must_eat)
-				{
-					safe_mutex(&data->count_lock, LOCK);
-					data->nb_philo_full += 1;
-					safe_mutex(&data->count_lock, UNLOCK);
-				}
-				if (data->nb_philo_full == data->must_eat)
-				{
-					safe_mutex(&data->count_lock, LOCK);
-					data->full = true;
-					safe_mutex(&data->count_lock, UNLOCK);
-					return ;
-				}
-				sleep(100);
-			}
-		}
-	}
 }
 
 static void	set_dead(t_data *data, bool value)
@@ -146,16 +112,10 @@ void	safe_writting(t_philo *philo, t_mutsec opcode)
 	
 	safe_mutex(&philo->data->time_lock, LOCK);
 	if (philo->data->dead && opcode != DIE)
-	{	
-		(safe_mutex(&philo->data->time_lock, UNLOCK));
-		return;
-	}
+		return (safe_mutex(&philo->data->time_lock, UNLOCK), (void)0);
 	time = get_time() - philo->data->start_time;
-	if (philo->data->dead && opcode != DIE)
-	{	
-		(safe_mutex(&philo->data->time_lock, UNLOCK), safe_mutex(&philo->data->write_lock, UNLOCK));
-		return ;
-	}
+	// if (philo->data->dead && opcode != DIE)
+	// return (safe_mutex(&philo->data->time_lock, UNLOCK), (void)0 );
 	safe_mutex(&philo->data->write_lock, LOCK);
 	philo->time = get_time() - philo->data->start_time;
 	if ( opcode == FORK)
@@ -190,7 +150,6 @@ void	eating(t_philo *philo)
 	safe_mutex(&philo->meal_lock, UNLOCK);
 	safe_writting(philo, EAT);
 	precise_sleep(philo->data, philo->data->time_to_eat);
-	check_full(philo->data);
 	safe_mutex(&philo->second_fork->fork, UNLOCK);
 	safe_mutex(&philo->first_fork->fork, UNLOCK);
 }
@@ -205,29 +164,39 @@ void	which_action(t_philo *philo, t_mutsec opcode)
 	if (opcode == THINK)
 	{
 		safe_writting(philo, THINK);
+		usleep(10);
+	}
+}
+
+static void	wait_start(t_data *data)
+{
+	while (1)
+	{
+		safe_mutex(&data->table_lock, LOCK);
+		if (data->time_starded)
+		{
+			safe_mutex(&data->table_lock, UNLOCK);
+			return ;
+		}
+		safe_mutex(&data->table_lock, UNLOCK);
 		usleep(100);
 	}
-
 }
 
 void*	what_to_do(void *data)
 {
 	t_philo *philo;
-	philo = data;
 	
-	safe_mutex(&philo->meal_lock, LOCK);
-	safe_mutex(&philo->meal_lock, UNLOCK);
+	philo = data;
+	wait_start(philo->data);
 	if (philo->id % 2 == 0)
 		usleep(100);
 	while (!is_dead(philo->data))
 	{
-		if (philo->data->nb_philos % 2 != 0)
-		{
-			if (philo->id == 1)
-				usleep(100);
-		}
+		if (philo->data->nb_philos % 2 != 0 && philo->id == 1)
+			usleep(100);
 		eating(philo);
-		if (is_dead(philo->data))
+		if (is_dead(philo->data) || is_full(philo->data))
 			break;
 		which_action(philo, SLEEP);
 		which_action(philo, THINK);		
@@ -236,41 +205,75 @@ void*	what_to_do(void *data)
 }
 
 
-void*	check_dead(void *dato)
+static bool	all_philos_full(t_data *data)
 {
-	t_data	*data;
-	int		i;
-	long	last_meal;
-	
-	data = (t_data *)dato;
-	while (!is_dead(data))
-	{
-		i =-1;
-		while(++i < data->nb_philos && !is_dead(data))
-		{
-			safe_mutex(&data->philo[i].meal_lock, LOCK);
-			last_meal = data->philo[i].time_lst_meal;
-			safe_mutex(&data->philo[i].meal_lock, UNLOCK);
-			
-			if ((get_time() - last_meal) > data->time_to_die)
-			{
-				safe_mutex(&data->time_lock, LOCK);
-				if (!data->dead )
-				{
-					data->dead = true;
-					safe_mutex(&data->write_lock, LOCK);
-					printf("%ld %d died\n", get_time() - data->start_time, data->philo[i].id);
-					safe_mutex(&data->write_lock, UNLOCK);
-				}
-				safe_mutex(&data->time_lock, UNLOCK);
-				return NULL;
-			}			
-		}	
-		usleep(1000);
-	}
-	return NULL;
+    int		i;
+    int		full_count;
+    long	meal_count;
+
+    if (data->must_eat == -1)
+        return (false);
+    full_count = 0;
+    i = -1;
+    while (++i < data->nb_philos)
+    {
+        safe_mutex(&data->philo[i].meal_lock, LOCK);
+        meal_count = data->philo[i].meal_count;
+        safe_mutex(&data->philo[i].meal_lock, UNLOCK);
+        if (meal_count >= data->must_eat)
+            full_count++;
+    }
+    return (full_count == data->nb_philos);
 }
 
+static void	mark_full_and_stop(t_data *data)
+{
+    safe_mutex(&data->count_lock, LOCK);
+    data->full = true;
+    safe_mutex(&data->count_lock, UNLOCK);
+    set_dead(data, true);
+}
+
+static bool	check_one_death(t_data *data, int i)
+{
+    long	last_meal;
+
+    safe_mutex(&data->philo[i].meal_lock, LOCK);
+    last_meal = data->philo[i].time_lst_meal;
+    safe_mutex(&data->philo[i].meal_lock, UNLOCK);
+    if ((get_time() - last_meal) <= data->time_to_die)
+        return (false);
+    safe_mutex(&data->time_lock, LOCK);
+    if (!data->dead)
+    {
+        data->dead = true;
+        safe_mutex(&data->write_lock, LOCK);
+        printf("%ld %d died\n", get_time() - data->start_time, data->philo[i].id);
+        safe_mutex(&data->write_lock, UNLOCK);
+    }
+    safe_mutex(&data->time_lock, UNLOCK);
+    return (true);
+}
+
+void*	check_dead(void *dato)
+{
+    t_data	*data;
+    int		i;
+
+    data = (t_data *)dato;
+	wait_start(data);
+    while (!is_dead(data))
+    {
+        if (all_philos_full(data))
+            return (mark_full_and_stop(data), NULL);
+        i = -1;
+        while (++i < data->nb_philos && !is_dead(data))
+            if (check_one_death(data, i))
+                return (NULL);
+        usleep(1000);
+    }
+    return (NULL);
+}
 
 int	lonely(t_data *data)
 {
@@ -286,21 +289,22 @@ int	lonely(t_data *data)
 int	a_table(t_data *data)
 {
 	int	i;
-	
-	i = -1;
+
 	if (data->nb_philos == 1)
 		return (lonely(data));
-	safe_mutex(&data->table_lock, LOCK);	
 	data->start_time = get_time();
+	i = -1;
+	while (++i < data->nb_philos)
+		data->philo[i].time_lst_meal = data->start_time;
+	i = -1;
+	while (++i < data->nb_philos)
+		if (safe_thread(&data->philo[i].threads_ids,
+				what_to_do, &data->philo[i], CREATE))
+			return (1);
 	if (safe_thread(&data->assas, check_dead, data, CREATE))
-		return (safe_mutex(&data->table_lock, UNLOCK), 3);
-		
-	while(++i < data->nb_philos)
-	{
-		data->philo[i].time_lst_meal = get_time();
-		if (safe_thread(&data->philo[i].threads_ids, what_to_do, &data->philo[i], CREATE))
-			return (safe_mutex(&data->table_lock, UNLOCK), 1);
-	}
+		return (3);
+	safe_mutex(&data->table_lock, LOCK);
+	data->time_starded = true;
 	safe_mutex(&data->table_lock, UNLOCK);
 	i = -1;
 	while (++i < data->nb_philos)
