@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/09 09:27:43 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/04/02 14:55:17 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/04/09 19:20:57 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,11 +88,12 @@ typedef enum	e_mutsec
 }	t_mutsec;
 
 int		check_and_init(int ac, char **av, t_data *data);
-void	free_struct(t_data *data);
-void	determine_fork(t_philo *philo, t_fork *forks, int position);
+int		safe_mutex(pthread_mutex_t *mutex, t_mutsec opcode);
+void	fill_first_part(char **av, t_data *data);
+int		all_mutexes_initialisation(t_data *data);
+long	ft_atol(const char *s);
 
 
 
-#include "parsing.h"
 
 #endif 

@@ -1,5 +1,7 @@
 SRCS = \
-	main.c 
+	main.c \
+	parsing.c \
+	parsing_utils.c 
 
 OBJS = ${SRCS:.c=.o}
 
