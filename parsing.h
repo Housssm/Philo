@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/16 14:29:54 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/04/02 15:58:30 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/04/09 12:21:44 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,9 +88,9 @@ int	fill_philo(t_data *data)
 		philo->thread_ready = false;
 		determine_fork(philo, data->forks, i);
 		if (safe_mutex(&philo->meal_lock, INIT))
-			return (printf("Erreur minitialisation mutexe meal\n"), 1);
+			return (printf("Error minitialisation mutexe meal\n"), 1);
 		if (safe_mutex(&philo->dead_lock, INIT))
-			return (printf("Erreur minitialisation mutexe dead\n"), 1);
+			return (printf("Error minitialisation mutexe dead\n"), 1);
 	}
 	return (0);
 }
