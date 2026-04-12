@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/09 17:36:52 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/04/09 19:22:58 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/04/12 16:39:51 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,4 +65,31 @@ int	all_mutexes_initialisation(t_data *data)
 	if (safe_mutex(&data->count_lock, INIT))
 		return (printf("Error initialisation mutexe time\n"), 5);
 	return (0);
+}
+
+void	free_struct(t_data *data)
+{
+	int	i;
+
+	i = -1;
+	if (data->philo != NULL)
+	{	
+		while (++i < data->nb_philos)
+		{
+			safe_mutex(&data->philo[i].meal_lock, DESTROY);
+			safe_mutex(&data->philo[i].dead_lock, DESTROY);
+		}
+		free(data->philo);
+	}
+	i = -1;
+	if (data->forks != NULL)
+	{
+		while (++i < data->nb_philos)
+			safe_mutex(&data->forks[i].fork, DESTROY);
+		free(data->forks);
+	}
+	safe_mutex(&data->time_lock, DESTROY);
+	safe_mutex(&data->write_lock, DESTROY);
+	safe_mutex(&data->table_lock, DESTROY);
+	safe_mutex(&data->count_lock, DESTROY);
 }

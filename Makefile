@@ -1,7 +1,11 @@
 SRCS = \
-	main.c \
-	parsing.c \
-	parsing_utils.c 
+	Src/main.c \
+	Src/parsing.c \
+	Src/parsing_utils.c \
+	Src/bool_time.c\
+	Src/checks.c\
+	Src/management.c\
+	Src/routine.c
 
 OBJS = ${SRCS:.c=.o}
 
