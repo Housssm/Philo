@@ -6,7 +6,7 @@
 /*   By: hoel-har <hoel-har@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/12 16:14:12 by hoel-har          #+#    #+#             */
-/*   Updated: 2026/04/12 16:43:04 by hoel-har         ###   ########.fr       */
+/*   Updated: 2026/04/12 17:58:17 by hoel-har         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,10 +102,6 @@ int	a_table(t_data *data)
 
 	if (data->nb_philos == 1)
 		return (lonely(data));
-	data->start_time = get_time();
-	i = -1;
-	while (++i < data->nb_philos)
-		data->philo[i].time_lst_meal = data->start_time;
 	i = -1;
 	while (++i < data->nb_philos)
 		if (safe_thread(&data->philo[i].threads_ids,
@@ -114,6 +110,10 @@ int	a_table(t_data *data)
 	if (safe_thread(&data->assas, check_dead, data, CREATE))
 		return (3);
 	safe_mutex(&data->table_lock, LOCK);
+	data->start_time = get_time();
+	i = -1;
+	while (++i < data->nb_philos)
+		data->philo[i].time_lst_meal = data->start_time;
 	data->time_starded = true;
 	safe_mutex(&data->table_lock, UNLOCK);
 	i = -1;
